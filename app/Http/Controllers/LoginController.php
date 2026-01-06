@@ -20,13 +20,13 @@ class LoginController extends Controller
 
         if ($student) {
             Student::where('email', $email)->update(['username' => $username]);
-            return response()->json(['message' => 'Login successful'], 200);
+            return view("welcome");
         } else {
             Student::create([
                 'username' => $username,
                 'email' => $email,
             ]);
-            return response()->json(['message' => 'New student created and logged in'], 201);
+            return view("welcome");
         }
     }
 }
