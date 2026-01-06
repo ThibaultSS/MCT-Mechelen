@@ -13,9 +13,7 @@ class LoginController extends Controller
         $username = $request->input('username');
         $email = $request->input('email');
 
-        $student = Student::where('username', $username)
-                          ->where('email', $email)
-                          ->first();
+        $student = Student::where('email', $email)->first();
 
         if ($student) {
             return response()->json(['message' => 'Login successful'], 200);
