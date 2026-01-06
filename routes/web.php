@@ -4,13 +4,22 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 
 Route::get('/', function () {
-    return view('welcome');
+    // If student is logged in, show games page, otherwise redirect to login
+    if (session()->has('student_id')) {
+        return view('welcome');
+    }
+    return redirect('/login');
+});
+
+Route::get('/login', function () {
+    // If already logged in, redirect to home
+    if (session()->has('student_id')) {
+        return redirect('/');
+    }
+    return view('login');
 });
 
 Route::post('/loginRun', [LoginController::class, 'loginRun']);
-Route::get('/login', function () {
-    return view('login');
-});
 
 Route::get('/game/comet-typing', function () {
     return view('game.comet-typing');
