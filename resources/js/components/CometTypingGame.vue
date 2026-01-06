@@ -101,9 +101,6 @@
 
         <!-- Ground -->
         <div class="ground-container">
-            <svg class="ground-svg" viewBox="0 0 1920 80" preserveAspectRatio="none">
-                <path d="M0,40 Q480,20 960,35 T1920,30 L1920,80 L0,80 Z" fill="#3a5a2a"/>
-            </svg>
             <div class="ground"></div>
         </div>
 
@@ -206,7 +203,6 @@ const getWordForDifficulty = () => {
 
 // Timers
 let spawnTimer = null;
-let gameTimer = null;
 let difficultyTimer = null;
 let animationFrame = null;
 
@@ -219,7 +215,7 @@ const createComet = () => {
     if (gameEnded.value || wordsSeen.value >= TOTAL_WORDS) return;
 
     const word = getWordForDifficulty();
-    // Bereken grootte op basis van woord lengte (minimum 120px, +10px per extra letter)
+    // Bereken grootte op basis van woord lengte (minimum 120px, +8px per extra letter)
     const baseSize = 120;
     const sizeIncrement = 8;
     const cometSize = baseSize + (word.length * sizeIncrement);
@@ -245,12 +241,11 @@ const moveComets = () => {
         comet.rotation += 0.15; // Langzamere rotatie tijdens vallen
     });
 
-    // Remove comets that are off screen
+    // Remove comets that are off screen and count missed ones
     const offScreenComets = comets.value.filter(
         comet => comet.top >= window.innerHeight + 150
     );
     
-    // Tel gemiste kometen
     if (offScreenComets.length > 0) {
         missed.value += offScreenComets.length;
     }
@@ -265,7 +260,7 @@ const moveComets = () => {
         return explosion.age < 25;
     });
 
-    // Check of spel moet eindigen (100 woorden gespawnd en geen kometen meer)
+    // Check if game should end (all words spawned and no comets left)
     if (wordsSeen.value >= TOTAL_WORDS && comets.value.length === 0 && !gameEnded.value) {
         endGame();
         return;
@@ -310,24 +305,19 @@ const handleInput = () => {
 const increaseDifficulty = () => {
     if (gameEnded.value) return;
     
-    // Update moeilijkheid elke 10 woorden die zijn verschenen
     const newDifficulty = Math.floor(wordsSeen.value / DIFFICULTY_INCREASE_INTERVAL);
     
     if (newDifficulty > currentDifficulty.value) {
         currentDifficulty.value = newDifficulty;
-        // Veel agressievere snelheidsverhoging
         speed.value += 0.4;
 
-        // Sneller spawnen
         if (spawnInterval.value > MIN_SPAWN_INTERVAL) {
             clearInterval(spawnTimer);
-            spawnInterval.value -= 150; // Sneller afnemen
+            spawnInterval.value -= 150;
             spawnTimer = setInterval(createComet, spawnInterval.value);
         }
     }
 };
-
-// Check of spel moet eindigen (geen aparte timer meer, alleen woord-telling)
 
 const endGame = () => {
     gameEnded.value = true;
@@ -360,7 +350,7 @@ const startGame = () => {
 
     // Start timers
     spawnTimer = setInterval(createComet, spawnInterval.value);
-    difficultyTimer = setInterval(increaseDifficulty, 500); // Check vaker voor difficulty
+    difficultyTimer = setInterval(increaseDifficulty, 500);
 
     // Start animation loop
     moveComets();
@@ -374,10 +364,6 @@ const handleStartGame = () => {
 const restartGame = () => {
     gameStarted.value = false;
     endGame();
-    // Reset na een korte delay zodat de start screen zichtbaar wordt
-    setTimeout(() => {
-        // Spel wordt opnieuw gestart wanneer gebruiker op START klikt
-    }, 100);
 };
 
 const cleanup = () => {
@@ -386,9 +372,7 @@ const cleanup = () => {
     if (animationFrame) cancelAnimationFrame(animationFrame);
 };
 
-onMounted(() => {
-    // Spel start niet automatisch, gebruiker moet op START klikken
-});
+// Game starts when user clicks START button
 
 onUnmounted(() => {
     cleanup();
@@ -518,16 +502,6 @@ onUnmounted(() => {
     z-index: 5;
     pointer-events: none;
     overflow: hidden;
-}
-
-.ground-svg {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    filter: drop-shadow(0 -3px 10px rgba(0, 0, 0, 0.3));
 }
 
 .ground {
