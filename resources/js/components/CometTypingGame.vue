@@ -149,12 +149,12 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 // Constants
 const TOTAL_WORDS = 50;
 const DIFFICULTY_INCREASE_INTERVAL = 10; // Elke 10 woorden
-const INITIAL_SPAWN_INTERVAL = 2000; // milliseconds
-const MIN_SPAWN_INTERVAL = 500; // milliseconds - veel sneller
+const INITIAL_SPAWN_INTERVAL = 2200; // milliseconds
+const MIN_SPAWN_INTERVAL = 700; // milliseconds
 const MIN_SPAWN_MARGIN = 150; // Minimale afstand van de rand
-const FAST_COMET_CHANCE = 0.2; // 20% kans op een snelle komeet
-const FAST_COMET_FIXED_SPEED = 5.0; // Vaste snelheid voor snelle kometen (niet afhankelijk van moeilijkheid)
-const MULTIPLE_COMET_CHANCE = 0.5; // 50% kans op meerdere kometen tegelijk
+const FAST_COMET_CHANCE = 0.18; // 18% kans op een snelle komeet
+const FAST_COMET_FIXED_SPEED = 4.5; // Vaste snelheid voor snelle kometen
+const MULTIPLE_COMET_CHANCE = 0.45; // 45% kans op meerdere kometen tegelijk
 const MAX_SIMULTANEOUS_COMETS = 2; // Maximaal 2 kometen tegelijk
 
 // Eenvoudige woorden
@@ -187,7 +187,7 @@ const wordsSeen = ref(0); // Totaal aantal woorden dat verschenen is
 const score = ref(0);
 const missed = ref(0); // Kometen die de bodem raakten
 const gameEnded = ref(false);
-const speed = ref(2.0); // Snellere start snelheid
+const speed = ref(1.8); // Start snelheid
 const spawnInterval = ref(INITIAL_SPAWN_INTERVAL);
 const currentDifficulty = ref(0); // Huidige moeilijkheidsniveau
 
@@ -363,11 +363,11 @@ const increaseDifficulty = () => {
     
     if (newDifficulty > currentDifficulty.value) {
         currentDifficulty.value = newDifficulty;
-        speed.value += 0.8; // Veel snellere snelheidsverhoging per niveau
+        speed.value += 0.5; // Snelheidsverhoging per niveau
 
         if (spawnInterval.value > MIN_SPAWN_INTERVAL) {
             clearInterval(spawnTimer);
-            spawnInterval.value -= 200; // Sneller spawnen (meer kometen per seconde)
+            spawnInterval.value -= 120; // Spawn verhoging
             spawnTimer = setInterval(createComet, spawnInterval.value);
         }
     }
@@ -391,7 +391,7 @@ const startGame = () => {
     wordsSeen.value = 0;
     score.value = 0;
     missed.value = 0;
-    speed.value = 2.0; // Snellere start snelheid
+    speed.value = 1.8; // Start snelheid
     spawnInterval.value = INITIAL_SPAWN_INTERVAL;
     currentDifficulty.value = 0;
     cometIdCounter = 0;
