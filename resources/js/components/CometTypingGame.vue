@@ -1,7 +1,18 @@
 <template>
     <div class="game-container">
+        <!-- Start Screen -->
+        <div v-if="!gameStarted" class="start-screen">
+            <div class="start-content">
+                <h1 class="start-title">Kometen Typen</h1>
+                <p class="start-description">Typ de woorden voordat ze de grond raken!</p>
+                <button class="btn-start" @click="handleStartGame">
+                    START
+                </button>
+            </div>
+        </div>
+
         <!-- Game UI -->
-        <div class="game-header">
+        <div v-if="gameStarted" class="game-header">
             <div class="stat">
                 <span class="stat-label">Score</span>
                 <span class="stat-value">{{ score }}</span>
@@ -18,6 +29,7 @@
 
         <!-- Comets -->
         <div
+            v-if="gameStarted"
             v-for="comet in comets"
             :key="comet.id"
             class="comet-wrapper"
@@ -70,6 +82,7 @@
 
         <!-- Explosion effects -->
         <div
+            v-if="gameStarted"
             v-for="explosion in explosions"
             :key="explosion.id"
             class="explosion"
@@ -86,8 +99,16 @@
             ></div>
         </div>
 
+        <!-- Ground -->
+        <div class="ground-container">
+            <svg class="ground-svg" viewBox="0 0 1920 80" preserveAspectRatio="none">
+                <path d="M0,40 Q480,20 960,35 T1920,30 L1920,80 L0,80 Z" fill="#3a5a2a"/>
+            </svg>
+            <div class="ground"></div>
+        </div>
+
         <!-- Input -->
-        <div class="input-container">
+        <div v-if="gameStarted" class="input-container">
             <input
                 v-model="inputValue"
                 type="text"
@@ -155,6 +176,7 @@ const HARD_WORDS = [
 ];
 
 // State
+const gameStarted = ref(false);
 const comets = ref([]);
 const explosions = ref([]);
 const inputValue = ref('');
@@ -344,9 +366,18 @@ const startGame = () => {
     moveComets();
 };
 
+const handleStartGame = () => {
+    gameStarted.value = true;
+    startGame();
+};
+
 const restartGame = () => {
+    gameStarted.value = false;
     endGame();
-    setTimeout(startGame, 100);
+    // Reset na een korte delay zodat de start screen zichtbaar wordt
+    setTimeout(() => {
+        // Spel wordt opnieuw gestart wanneer gebruiker op START klikt
+    }, 100);
 };
 
 const cleanup = () => {
@@ -356,7 +387,7 @@ const cleanup = () => {
 };
 
 onMounted(() => {
-    startGame();
+    // Spel start niet automatisch, gebruiker moet op START klikken
 });
 
 onUnmounted(() => {
@@ -477,10 +508,69 @@ onUnmounted(() => {
 .explosion-particle:nth-child(7) { --x: -60px; --y: 0px; }
 .explosion-particle:nth-child(8) { --x: -42px; --y: -42px; }
 
+/* Ground */
+.ground-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.ground-svg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 -3px 10px rgba(0, 0, 0, 0.3));
+}
+
+.ground {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to top, #2d4a22 0%, #3a5a2a 50%, #4a6a3a 100%);
+    clip-path: polygon(
+        0% 60%, 
+        5% 55%, 
+        10% 58%, 
+        15% 52%, 
+        20% 56%, 
+        25% 54%, 
+        30% 57%, 
+        35% 51%, 
+        40% 55%, 
+        45% 53%, 
+        50% 56%, 
+        55% 54%, 
+        60% 57%, 
+        65% 52%, 
+        70% 55%, 
+        75% 53%, 
+        80% 56%, 
+        85% 54%, 
+        90% 57%, 
+        95% 52%, 
+        100% 60%, 
+        100% 100%, 
+        0% 100%
+    );
+    box-shadow: 
+        0 -5px 15px rgba(0, 0, 0, 0.3),
+        inset 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
 /* Input */
 .input-container {
     position: absolute;
-    bottom: 2rem;
+    bottom: 100px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
@@ -572,6 +662,108 @@ onUnmounted(() => {
     color: #fff;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(251, 110, 0, 0.4);
+}
+
+/* Start Screen */
+.start-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #07103E 0%, #0a1128 100%);
+    z-index: 100;
+}
+
+.start-content {
+    text-align: center;
+    padding: 3rem;
+}
+
+.start-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #FCC600;
+    margin-bottom: 1rem;
+    text-shadow: 
+        0 0 20px rgba(252, 198, 0, 0.5),
+        0 0 40px rgba(251, 110, 0, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.start-description {
+    font-size: 1.25rem;
+    color: #147ED8;
+    margin-bottom: 3rem;
+    font-weight: 500;
+}
+
+.btn-start {
+    padding: 1.25rem 4rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #07103E;
+    background: linear-gradient(135deg, #FB6E00 0%, #FCC600 100%);
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        0 0 40px rgba(252, 198, 0, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.btn-start:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.4),
+        0 0 60px rgba(252, 198, 0, 0.6);
+    background: linear-gradient(135deg, #FCC600 0%, #FB6E00 100%);
+}
+
+.btn-start:active {
+    transform: translateY(-2px) scale(1.02);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .start-title {
+        font-size: 2.5rem;
+    }
+    
+    .start-description {
+        font-size: 1rem;
+    }
+    
+    .btn-start {
+        padding: 1rem 3rem;
+        font-size: 1.5rem;
+    }
+
+    .ground-container {
+        height: 50px;
+    }
+
+    .ground {
+        height: 50px;
+    }
+
+    .input-container {
+        bottom: 80px;
+    }
 }
 
 .btn-primary:active {
