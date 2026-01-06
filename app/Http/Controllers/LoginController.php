@@ -8,7 +8,7 @@ use App\Models\Student;
 
 class LoginController extends Controller
 {
-    public function login(Request $request)
+    public function loginRun(Request $request)
     {
         $username = $request->input('username');
         $email = $request->input('email');
