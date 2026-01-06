@@ -18,24 +18,15 @@ class LoginController extends Controller
             ['username' => $username]
         );
 
-        if ($student->wasRecentlyCreated === false) {
-            $student->update(['username' => $username]);
+        if ($student) {
+            Student::where('email', $email)->update(['username' => $username]);
+            return response()->json(['message' => 'Login successful'], 200);
+        } else {
+            Student::create([
+                'username' => $username,
+                'email' => $email,
+            ]);
+            return response()->json(['message' => 'New student created and logged in'], 201);
         }
-
-        session([
-            'student_id' => $student->id,
-            'student_name' => $username,
-            'student_email' => $email
-        ]);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'message' => $student->wasRecentlyCreated 
-                    ? 'New student created and logged in' 
-                    : 'Login successful'
-            ], $student->wasRecentlyCreated ? 201 : 200);
-        }
-
-        return redirect('/');
     }
 }
