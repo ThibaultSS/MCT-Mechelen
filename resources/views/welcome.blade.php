@@ -4,7 +4,6 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ config('app.name', 'Laravel') }}</title>
-            @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body style="margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #07103E 0%, #147ED8 100%); font-family: Arial, sans-serif;">
         <div style="text-align: center; margin-bottom: 60px;">
