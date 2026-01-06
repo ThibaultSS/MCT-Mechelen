@@ -33,6 +33,7 @@
             v-for="comet in comets"
             :key="comet.id"
             class="comet-wrapper"
+            :class="{ 'fast-comet': comet.isFast }"
             :style="{
                 left: `${comet.left}px`,
                 top: `${comet.top}px`,
@@ -55,9 +56,9 @@
                         </feMerge>
                     </filter>
                     <radialGradient :id="'cometGradient-' + comet.id" cx="50%" cy="50%">
-                        <stop offset="0%" style="stop-color:#FCC600;stop-opacity:1" />
-                        <stop offset="40%" style="stop-color:#FB6E00;stop-opacity:0.9" />
-                        <stop offset="100%" style="stop-color:#FB6E00;stop-opacity:0.5" />
+                        <stop offset="0%" :style="`stop-color:${comet.isFast ? '#FF0000' : '#FCC600'};stop-opacity:1`" />
+                        <stop offset="40%" :style="`stop-color:${comet.isFast ? '#FF4444' : '#FB6E00'};stop-opacity:0.9`" />
+                        <stop offset="100%" :style="`stop-color:${comet.isFast ? '#FF6666' : '#FB6E00'};stop-opacity:0.5`" />
                     </radialGradient>
                 </defs>
                 <!-- Komeet kern (groter) -->
@@ -111,6 +112,7 @@
                 type="text"
                 class="game-input"
                 placeholder="Typ het woord..."
+                @input="checkInputMatch"
                 @keydown.enter="handleInput"
                 autofocus
             />
@@ -145,11 +147,15 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 // Constants
-const TOTAL_WORDS = 100;
+const TOTAL_WORDS = 50;
 const DIFFICULTY_INCREASE_INTERVAL = 10; // Elke 10 woorden
 const INITIAL_SPAWN_INTERVAL = 2000; // milliseconds
 const MIN_SPAWN_INTERVAL = 500; // milliseconds - veel sneller
 const MIN_SPAWN_MARGIN = 150; // Minimale afstand van de rand
+const FAST_COMET_CHANCE = 0.2; // 20% kans op een snelle komeet
+const FAST_COMET_FIXED_SPEED = 5.0; // Vaste snelheid voor snelle kometen (niet afhankelijk van moeilijkheid)
+const MULTIPLE_COMET_CHANCE = 0.5; // 50% kans op meerdere kometen tegelijk
+const MAX_SIMULTANEOUS_COMETS = 2; // Maximaal 2 kometen tegelijk
 
 // Eenvoudige woorden
 const EASY_WORDS = [
@@ -181,7 +187,7 @@ const wordsSeen = ref(0); // Totaal aantal woorden dat verschenen is
 const score = ref(0);
 const missed = ref(0); // Kometen die de bodem raakten
 const gameEnded = ref(false);
-const speed = ref(1.2);
+const speed = ref(2.0); // Snellere start snelheid
 const spawnInterval = ref(INITIAL_SPAWN_INTERVAL);
 const currentDifficulty = ref(0); // Huidige moeilijkheidsniveau
 
@@ -210,34 +216,62 @@ let animationFrame = null;
 let cometIdCounter = 0;
 let explosionIdCounter = 0;
 
+// Track laatste komeet type om snelle kometen na elkaar te voorkomen
+let lastCometWasFast = false;
+
 // Game logic
 const createComet = () => {
     if (gameEnded.value || wordsSeen.value >= TOTAL_WORDS) return;
 
-    const word = getWordForDifficulty();
-    // Bereken grootte op basis van woord lengte (minimum 120px, +8px per extra letter)
-    const baseSize = 120;
-    const sizeIncrement = 8;
-    const cometSize = baseSize + (word.length * sizeIncrement);
+    // Bepaal hoeveel kometen tegelijk spawnen (50% kans op meerdere)
+    const spawnMultiple = Math.random() < MULTIPLE_COMET_CHANCE;
+    const cometCount = spawnMultiple ? 2 : 1; // 1 of 2 kometen
 
-    const comet = {
-        id: cometIdCounter++,
-        word,
-        left: Math.random() * (window.innerWidth - MIN_SPAWN_MARGIN * 2) + MIN_SPAWN_MARGIN,
-        top: -100,
-        rotation: Math.random() * 10 - 5, // Start rotatie tussen -5 en 5 graden
-        size: cometSize, // Sla grootte op
-    };
+    for (let i = 0; i < cometCount; i++) {
+        if (wordsSeen.value >= TOTAL_WORDS) break;
 
-    comets.value.push(comet);
-    wordsSeen.value++;
+        // Bepaal of dit een snelle komeet is
+        // Geen snelle komeet als de laatste ook snel was, of als dit niet de eerste is in een batch
+        let isFast = false;
+        if (!lastCometWasFast && i === 0) {
+            // Alleen eerste komeet in batch kan snel zijn
+            isFast = Math.random() < FAST_COMET_CHANCE;
+        }
+        
+        lastCometWasFast = isFast;
+
+        // Snelle kometen krijgen altijd makkelijke woorden
+        const word = isFast 
+            ? EASY_WORDS[Math.floor(Math.random() * EASY_WORDS.length)]
+            : getWordForDifficulty();
+        
+        // Bereken grootte op basis van woord lengte (minimum 120px, +8px per extra letter)
+        const baseSize = 120;
+        const sizeIncrement = 8;
+        const cometSize = baseSize + (word.length * sizeIncrement);
+
+        const comet = {
+            id: cometIdCounter++,
+            word,
+            left: Math.random() * (window.innerWidth - MIN_SPAWN_MARGIN * 2) + MIN_SPAWN_MARGIN,
+            top: -100,
+            rotation: Math.random() * 10 - 5, // Start rotatie tussen -5 en 5 graden
+            size: cometSize, // Sla grootte op
+            isFast: isFast, // Snelle komeet flag
+        };
+
+        comets.value.push(comet);
+        wordsSeen.value++;
+    }
 };
 
 const moveComets = () => {
     if (gameEnded.value) return;
 
     comets.value.forEach(comet => {
-        comet.top += speed.value;
+        // Snelle kometen hebben een vaste snelheid, normale kometen worden sneller met moeilijkheid
+        const cometSpeed = comet.isFast ? FAST_COMET_FIXED_SPEED : speed.value;
+        comet.top += cometSpeed;
         comet.rotation += 0.15; // Langzamere rotatie tijdens vallen
     });
 
@@ -287,7 +321,27 @@ const destroyComet = (index) => {
     score.value++;
 };
 
+const checkInputMatch = () => {
+    if (gameEnded.value || !inputValue.value.trim()) return;
+
+    const input = inputValue.value.trim().toLowerCase();
+    
+    // Check of het getypte woord overeenkomt met een komeet woord
+    const matchingComet = comets.value.find(
+        comet => comet.word.toLowerCase() === input
+    );
+
+    if (matchingComet) {
+        const index = comets.value.findIndex(c => c.id === matchingComet.id);
+        if (index !== -1) {
+            destroyComet(index);
+            inputValue.value = '';
+        }
+    }
+};
+
 const handleInput = () => {
+    // Enter key handler - kan nog steeds gebruikt worden
     if (gameEnded.value || !inputValue.value.trim()) return;
 
     const input = inputValue.value.trim().toLowerCase();
@@ -309,11 +363,11 @@ const increaseDifficulty = () => {
     
     if (newDifficulty > currentDifficulty.value) {
         currentDifficulty.value = newDifficulty;
-        speed.value += 0.4;
+        speed.value += 0.8; // Veel snellere snelheidsverhoging per niveau
 
         if (spawnInterval.value > MIN_SPAWN_INTERVAL) {
             clearInterval(spawnTimer);
-            spawnInterval.value -= 150;
+            spawnInterval.value -= 200; // Sneller spawnen (meer kometen per seconde)
             spawnTimer = setInterval(createComet, spawnInterval.value);
         }
     }
@@ -337,11 +391,12 @@ const startGame = () => {
     wordsSeen.value = 0;
     score.value = 0;
     missed.value = 0;
-    speed.value = 1.2;
+    speed.value = 2.0; // Snellere start snelheid
     spawnInterval.value = INITIAL_SPAWN_INTERVAL;
     currentDifficulty.value = 0;
     cometIdCounter = 0;
     explosionIdCounter = 0;
+    lastCometWasFast = false; // Reset snelle komeet tracking
 
     // Clear any existing timers
     if (spawnTimer) clearInterval(spawnTimer);
@@ -441,6 +496,11 @@ onUnmounted(() => {
     display: block;
 }
 
+.fast-comet .comet-svg {
+    filter: drop-shadow(0 0 20px #FF0000) drop-shadow(0 0 35px #FF4444) drop-shadow(0 0 50px #FF6666);
+    animation: comet-pulse-fast 0.8s ease-in-out infinite;
+}
+
 @keyframes comet-pulse {
     0%, 100% {
         opacity: 0.8;
@@ -449,6 +509,17 @@ onUnmounted(() => {
     50% {
         opacity: 1;
         transform: translateX(-50%) scale(1.1);
+    }
+}
+
+@keyframes comet-pulse-fast {
+    0%, 100% {
+        opacity: 0.9;
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.15);
     }
 }
 
