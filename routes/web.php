@@ -11,3 +11,7 @@ Route::post('/loginRun', [LoginController::class, 'loginRun']);
 Route::get('/login', function () {
     return view('login');
 });
+
+Route::get('/game/comet-typing', function () {
+    return view('game.comet-typing');
+})->name('game.comet-typing');
