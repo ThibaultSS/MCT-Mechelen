@@ -7,8 +7,12 @@
                 <span class="stat-value">{{ score }}</span>
             </div>
             <div class="stat">
-                <span class="stat-label">Tijd</span>
-                <span class="stat-value">{{ remainingTime }}s</span>
+                <span class="stat-label">Woorden</span>
+                <span class="stat-value">{{ remainingWords }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Gemist</span>
+                <span class="stat-value">{{ missed }}</span>
             </div>
         </div>
 
@@ -24,7 +28,12 @@
             }"
         >
             <!-- Komeet SVG -->
-            <svg class="comet-svg" width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <svg 
+                class="comet-svg" 
+                :style="{ width: (comet.size || 120) + 'px', height: (comet.size || 120) + 'px' }"
+                viewBox="0 0 100 100" 
+                xmlns="http://www.w3.org/2000/svg"
+            >
                 <defs>
                     <filter :id="'glow-' + comet.id">
                         <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
@@ -51,7 +60,7 @@
                     text-anchor="middle" 
                     dominant-baseline="central"
                     font-family="Arial, sans-serif"
-                    font-size="16"
+                    :font-size="Math.max(10, 18 - (comet.word.length - 4) * 0.6)"
                     font-weight="bold"
                     fill="#07103E"
                     style="pointer-events: none;"
@@ -98,7 +107,10 @@
             <div class="modal-content">
                 <h2 class="modal-title">Tijd voorbij!</h2>
                 <p class="modal-text">
-                    Je hebt <strong>{{ score }}</strong> kometen vernietigd
+                    Je hebt <strong>{{ score }}</strong> van <strong>{{ TOTAL_WORDS }}</strong> woorden getypt!
+                </p>
+                <p class="modal-text" v-if="missed > 0">
+                    <strong>{{ missed }}</strong> kometen gemist
                 </p>
                 <button
                     class="btn btn-primary"
@@ -115,31 +127,60 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 // Constants
-const GAME_DURATION = 60; // seconds
-const DIFFICULTY_INTERVAL = 10000; // milliseconds
+const TOTAL_WORDS = 100;
+const DIFFICULTY_INCREASE_INTERVAL = 10; // Elke 10 woorden
 const INITIAL_SPAWN_INTERVAL = 2000; // milliseconds
-const MIN_SPAWN_INTERVAL = 800; // milliseconds
+const MIN_SPAWN_INTERVAL = 500; // milliseconds - veel sneller
+const MIN_SPAWN_MARGIN = 150; // Minimale afstand van de rand
 
-const WORDS = [
+// Eenvoudige woorden
+const EASY_WORDS = [
     'appel', 'banaan', 'citroen', 'druif', 'eik', 'fiets', 'gitaar', 'huis',
     'ijs', 'jas', 'kast', 'lamp', 'muziek', 'noot', 'olifant', 'piano',
     'quiz', 'raket', 'ster', 'tafel', 'ui', 'vogel', 'water', 'xylofoon',
     'yoga', 'zon', 'auto', 'boek', 'code', 'dans', 'eten', 'feest',
-    'goud', 'hond', 'kaas', 'liefde', 'maan', 'nacht', 'oog', 'paard'
+    'goud', 'hond', 'kaas', 'liefde', 'maan', 'nacht', 'oog', 'paard',
+    'regen', 'sneeuw', 'tijd', 'uur', 'vriend', 'winter', 'zomer', 'lente'
+];
+
+// Moeilijkere woorden
+const HARD_WORDS = [
+    'computer', 'elektronisch', 'programmeur', 'ontwikkelaar', 'applicatie',
+    'technologie', 'innovatie', 'processor', 'besturingssysteem', 'software',
+    'hardware', 'netwerk', 'database', 'server', 'framework', 'interface',
+    'algoritme', 'programmeren', 'codeer', 'syntaxis', 'variabele', 'functie',
+    'parameter', 'iteratie', 'recursie', 'abstractie', 'encapsulatie', 'polymorfisme',
+    'gebeurtenis', 'callback', 'asynchroon', 'promise', 'component', 'modulariteit',
+    'optimalisatie', 'debuggen', 'testen', 'validatie', 'authenticatie', 'autorisatie'
 ];
 
 // State
 const comets = ref([]);
 const explosions = ref([]);
 const inputValue = ref('');
-const gameTime = ref(0);
+const wordsSeen = ref(0); // Totaal aantal woorden dat verschenen is
 const score = ref(0);
+const missed = ref(0); // Kometen die de bodem raakten
 const gameEnded = ref(false);
 const speed = ref(1.2);
 const spawnInterval = ref(INITIAL_SPAWN_INTERVAL);
+const currentDifficulty = ref(0); // Huidige moeilijkheidsniveau
 
 // Computed
-const remainingTime = computed(() => GAME_DURATION - gameTime.value);
+const remainingWords = computed(() => TOTAL_WORDS - wordsSeen.value);
+
+// Functie om woorden te krijgen op basis van moeilijkheid
+const getWordForDifficulty = () => {
+    // Bij hogere moeilijkheid, gebruik veel meer moeilijke woorden (agressiever)
+    const difficultyRatio = currentDifficulty.value / 10;
+    // Sneller naar 100% moeilijke woorden (bij difficulty 10 = 100%)
+    const hardWordChance = Math.min(difficultyRatio * 0.7, 1.0); // Max 100% moeilijke woorden
+    
+    const useHardWord = Math.random() < hardWordChance && HARD_WORDS.length > 0;
+    const wordPool = useHardWord ? HARD_WORDS : EASY_WORDS;
+    
+    return wordPool[Math.floor(Math.random() * wordPool.length)];
+};
 
 // Timers
 let spawnTimer = null;
@@ -153,17 +194,25 @@ let explosionIdCounter = 0;
 
 // Game logic
 const createComet = () => {
-    if (gameEnded.value) return;
+    if (gameEnded.value || wordsSeen.value >= TOTAL_WORDS) return;
+
+    const word = getWordForDifficulty();
+    // Bereken grootte op basis van woord lengte (minimum 120px, +10px per extra letter)
+    const baseSize = 120;
+    const sizeIncrement = 8;
+    const cometSize = baseSize + (word.length * sizeIncrement);
 
     const comet = {
         id: cometIdCounter++,
-        word: WORDS[Math.floor(Math.random() * WORDS.length)],
-        left: Math.random() * Math.max(100, window.innerWidth - 200),
+        word,
+        left: Math.random() * (window.innerWidth - MIN_SPAWN_MARGIN * 2) + MIN_SPAWN_MARGIN,
         top: -100,
         rotation: Math.random() * 10 - 5, // Start rotatie tussen -5 en 5 graden
+        size: cometSize, // Sla grootte op
     };
 
     comets.value.push(comet);
+    wordsSeen.value++;
 };
 
 const moveComets = () => {
@@ -175,6 +224,15 @@ const moveComets = () => {
     });
 
     // Remove comets that are off screen
+    const offScreenComets = comets.value.filter(
+        comet => comet.top >= window.innerHeight + 150
+    );
+    
+    // Tel gemiste kometen
+    if (offScreenComets.length > 0) {
+        missed.value += offScreenComets.length;
+    }
+    
     comets.value = comets.value.filter(
         comet => comet.top < window.innerHeight + 150
     );
@@ -185,7 +243,15 @@ const moveComets = () => {
         return explosion.age < 25;
     });
 
-    animationFrame = requestAnimationFrame(moveComets);
+    // Check of spel moet eindigen (100 woorden gespawnd en geen kometen meer)
+    if (wordsSeen.value >= TOTAL_WORDS && comets.value.length === 0 && !gameEnded.value) {
+        endGame();
+        return;
+    }
+
+    if (!gameEnded.value) {
+        animationFrame = requestAnimationFrame(moveComets);
+    }
 };
 
 const createExplosion = (x, y) => {
@@ -221,32 +287,31 @@ const handleInput = () => {
 
 const increaseDifficulty = () => {
     if (gameEnded.value) return;
+    
+    // Update moeilijkheid elke 10 woorden die zijn verschenen
+    const newDifficulty = Math.floor(wordsSeen.value / DIFFICULTY_INCREASE_INTERVAL);
+    
+    if (newDifficulty > currentDifficulty.value) {
+        currentDifficulty.value = newDifficulty;
+        // Veel agressievere snelheidsverhoging
+        speed.value += 0.4;
 
-    speed.value += 0.2;
-
-    if (spawnInterval.value > MIN_SPAWN_INTERVAL) {
-        clearInterval(spawnTimer);
-        spawnInterval.value -= 100;
-        spawnTimer = setInterval(createComet, spawnInterval.value);
+        // Sneller spawnen
+        if (spawnInterval.value > MIN_SPAWN_INTERVAL) {
+            clearInterval(spawnTimer);
+            spawnInterval.value -= 150; // Sneller afnemen
+            spawnTimer = setInterval(createComet, spawnInterval.value);
+        }
     }
 };
 
-const checkGameTime = () => {
-    if (gameEnded.value) return;
-
-    gameTime.value++;
-
-    if (gameTime.value >= GAME_DURATION) {
-        endGame();
-    }
-};
+// Check of spel moet eindigen (geen aparte timer meer, alleen woord-telling)
 
 const endGame = () => {
     gameEnded.value = true;
     comets.value = [];
 
     if (spawnTimer) clearInterval(spawnTimer);
-    if (gameTimer) clearInterval(gameTimer);
     if (difficultyTimer) clearInterval(difficultyTimer);
     if (animationFrame) cancelAnimationFrame(animationFrame);
 };
@@ -257,23 +322,23 @@ const startGame = () => {
     comets.value = [];
     explosions.value = [];
     inputValue.value = '';
-    gameTime.value = 0;
+    wordsSeen.value = 0;
     score.value = 0;
+    missed.value = 0;
     speed.value = 1.2;
     spawnInterval.value = INITIAL_SPAWN_INTERVAL;
+    currentDifficulty.value = 0;
     cometIdCounter = 0;
     explosionIdCounter = 0;
 
     // Clear any existing timers
     if (spawnTimer) clearInterval(spawnTimer);
-    if (gameTimer) clearInterval(gameTimer);
     if (difficultyTimer) clearInterval(difficultyTimer);
     if (animationFrame) cancelAnimationFrame(animationFrame);
 
     // Start timers
     spawnTimer = setInterval(createComet, spawnInterval.value);
-    gameTimer = setInterval(checkGameTime, 1000);
-    difficultyTimer = setInterval(increaseDifficulty, DIFFICULTY_INTERVAL);
+    difficultyTimer = setInterval(increaseDifficulty, 500); // Check vaker voor difficulty
 
     // Start animation loop
     moveComets();
@@ -286,7 +351,6 @@ const restartGame = () => {
 
 const cleanup = () => {
     if (spawnTimer) clearInterval(spawnTimer);
-    if (gameTimer) clearInterval(gameTimer);
     if (difficultyTimer) clearInterval(difficultyTimer);
     if (animationFrame) cancelAnimationFrame(animationFrame);
 };
@@ -355,8 +419,6 @@ onUnmounted(() => {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 120px;
-    height: 120px;
     filter: drop-shadow(0 0 15px #FCC600) drop-shadow(0 0 25px #FB6E00);
     z-index: 1;
     animation: comet-pulse 1.2s ease-in-out infinite;
