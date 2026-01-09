@@ -2,6 +2,7 @@ import './bootstrap';
 import { createApp } from 'vue';
 import ExampleComponent from './components/ExampleComponent.vue';
 import CometTypingGame from './components/CometTypingGame.vue';
+import AiOrNotGame from './components/AiOrNotGame.vue';
 
 // Wacht tot DOM geladen is
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Registreer globale componenten
     app.component('example-component', ExampleComponent);
     app.component('comet-typing-game', CometTypingGame);
+    app.component('ai-or-not-game', AiOrNotGame);
 
     // Mount de app op een element in je Blade template
     const appElement = document.getElementById('app');
@@ -18,10 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             app.mount('#app');
         } catch (error) {
-            // Silently fail in production
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Error mounting Vue app:', error);
-            }
+            console.error('Error mounting Vue app:', error);
         }
+    } else {
+        console.error('App element (#app) not found in DOM');
     }
 });

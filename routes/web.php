@@ -19,3 +19,7 @@ Route::get('/login', function () {
 Route::get('/game/comet-typing', function () {
     return view('game.comet-typing');
 })->name('game.comet-typing');
+
+Route::get('/game/ai-or-not', function () {
+    return view('game.ai-or-not');
+})->name('game.ai-or-not');
