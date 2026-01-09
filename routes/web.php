@@ -25,3 +25,7 @@ Route::get('/game/comet-typing', function () {
 Route::get('/game/ai-or-not', function () {
     return view('game.ai-or-not');
 })->name('game.ai-or-not');
+
+Route::get('/game/hexa-guess', function () {
+    return view('game.hexa-guess');
+})->name('game.hexa-guess');

@@ -17,7 +17,7 @@
             <p style="color: #706f6c; text-align: center; margin-bottom: 2rem;">Vul je gegevens in om te beginnen</p>
             
             <form method="POST" action="/loginRun" id="loginForm" style="display: flex; flex-direction: column; gap: 1.5rem;">
-                @csrf
+            @csrf
                 
                 <div>
                     <label for="username" style="display: block; color: #07103E; font-weight: 600; margin-bottom: 0.5rem;">Naam</label>
@@ -53,7 +53,7 @@
                 >
                     Starten
                 </button>
-            </form>
+        </form>
         </div>
     </div>
 
