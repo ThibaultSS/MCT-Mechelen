@@ -55,6 +55,7 @@
                     padding: 35px 70px !important;
                     font-size: 28px !important;
                     border-radius: 25px !important;
+                    width: 90%;
                 }
             }
         </style>
