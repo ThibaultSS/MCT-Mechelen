@@ -122,22 +122,20 @@
         <div
             v-if="gameEnded"
             class="modal-overlay"
-            @click.self="restartGame"
         >
             <div class="modal-content">
-                <h2 class="modal-title">Tijd voorbij!</h2>
+                <h2 class="modal-title">Challenge voltooid!</h2>
                 <p class="modal-text">
-                    Je hebt <strong>{{ score }}</strong> van <strong>{{ TOTAL_WORDS }}</strong> woorden getypt!
+                    Je hebt <strong>{{ score }}</strong> van <strong>{{ TOTAL_WORDS }}</strong> juist!
                 </p>
-                <p class="modal-text" v-if="missed > 0">
-                    <strong>{{ missed }}</strong> kometen gemist
-                </p>
-                <button
-                    class="btn btn-primary"
-                    @click="restartGame"
-                >
-                    Opnieuw spelen
-                </button>
+                <div class="modal-actions">
+                    <button
+                        class="btn btn-primary"
+                        @click="goToNextChallenge"
+                    >
+                        Volgende Challenge
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -419,6 +417,11 @@ const handleStartGame = () => {
 const restartGame = () => {
     gameStarted.value = false;
     endGame();
+};
+
+const goToNextChallenge = () => {
+    // Navigeer naar de volgende challenge (AI OR NOT)
+    window.location.href = '/game/ai-or-not';
 };
 
 const cleanup = () => {
@@ -708,6 +711,14 @@ onUnmounted(() => {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(251, 110, 0, 0.4);
 }
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
 
 /* Start Screen */
 .start-screen {

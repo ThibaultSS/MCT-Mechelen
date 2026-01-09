@@ -59,22 +59,12 @@
         <!-- Game Over Screen -->
         <div v-if="gameEnded" class="game-over-screen">
             <div class="game-over-content">
-                <h1 class="game-over-title">GAME OVER</h1>
-                <div class="final-stats">
-                    <div class="final-stat">
-                        <span class="final-stat-label">Score</span>
-                        <span class="final-stat-value">{{ score }}/{{ totalRounds }}</span>
-                    </div>
-                    <div class="final-stat">
-                        <span class="final-stat-label">Percentage</span>
-                        <span class="final-stat-value">{{ Math.round((score / totalRounds) * 100) }}%</span>
-                    </div>
-                </div>
+                <h1 class="game-over-title">Challenge voltooid!</h1>
+                <p class="result-text">
+                    Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
+                </p>
                 <div class="game-over-actions">
-                    <button class="btn-primary" @click="restartGame">
-                        Opnieuw Spelen
-                    </button>
-                    <a href="/" class="btn-secondary">
+                    <a href="/" class="btn-primary">
                         Terug naar Home
                     </a>
                 </div>
@@ -554,34 +544,21 @@ const restartGame = () => {
 .game-over-title {
     font-size: 56px;
     font-weight: bold;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     color: #FCC600;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
-.final-stats {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 50px;
-    gap: 30px;
+.result-text {
+    font-size: 32px;
+    color: #cbd5e1;
+    margin-bottom: 40px;
+    line-height: 1.6;
 }
 
-.final-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.final-stat-label {
-    font-size: 20px;
-    opacity: 0.9;
-    margin-bottom: 10px;
-}
-
-.final-stat-value {
-    font-size: 48px;
-    font-weight: bold;
+.result-text strong {
     color: #FCC600;
+    font-weight: 700;
 }
 
 .game-over-actions {
