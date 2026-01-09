@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Typeracer;
+use App\Models\Aiornot;
 
-class CalculateCometScore extends Controller
+class CalculateAiScore extends Controller
 {
     public function calculateScore($score)
     {
@@ -14,9 +14,9 @@ class CalculateCometScore extends Controller
             'student_id' => session('student_id'),
             'time' => 0,
             'score' => $score,
-            'total_score' => (int)($score/5),
+            'total_score' => $score,
         ]);
-        return view("game.ai-or-not");   
+        return view("welcome");   
 
-    }
+    } 
 }

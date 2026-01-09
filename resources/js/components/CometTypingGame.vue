@@ -421,7 +421,7 @@ const restartGame = () => {
 
 const goToNextChallenge = () => {
     // Navigeer naar de volgende challenge (AI OR NOT)
-    window.location.href = '/game/ai-or-not';
+    window.location.href = '/score/comet-typing/' + score.value;
 };
 
 const cleanup = () => {
