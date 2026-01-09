@@ -18,9 +18,22 @@
                     <span class="stat-label">Ronde</span>
                     <span class="stat-value">{{ currentRound }}/{{ totalRounds }}</span>
                 </div>
+                <div class="game-title">
+                    <span class="game-title-text">HexaGuess</span>
+                </div>
                 <div class="stat">
                     <span class="stat-label">Score</span>
                     <span class="stat-value">{{ score }}</span>
+                </div>
+            </div>
+            
+            <!-- Tip Container (rechtsonder) -->
+            <div class="tip-container">
+                <button class="tip-icon-btn" @click="toggleTip">
+                    <span class="tip-icon">💡</span>
+                </button>
+                <div v-if="tipOpen" class="tip-banner" :class="{ 'tip-open': tipOpen }">
+                    <p class="tip-text">💡 Tip: #RRGGBB betekent Rood-Groen-Blauw. De hoogste waarde (FF = 255) is de dominante kleur!</p>
                 </div>
             </div>
 
@@ -104,6 +117,7 @@ const resultMessage = ref('');
 const resultClass = ref('');
 const loadingColor = ref(false);
 const lastChoiceWasCorrect = ref(false);
+const tipOpen = ref(false);
 
 // Genereer een willekeurige hex kleur waar één primaire kleur dominant is
 const generateColor = () => {
@@ -206,6 +220,10 @@ const endGame = () => {
     gameStarted.value = false;
 };
 
+const toggleTip = () => {
+    tipOpen.value = !tipOpen.value;
+};
+
 const restartGame = () => {
     gameStarted.value = false;
     gameEnded.value = false;
@@ -214,6 +232,7 @@ const restartGame = () => {
     showingResult.value = false;
     currentColor.value = { hex: '', dominantColor: '' };
     loadingColor.value = false;
+    tipOpen.value = false;
 };
 </script>
 
@@ -293,11 +312,101 @@ const restartGame = () => {
     box-sizing: border-box;
 }
 
+.tip-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 1000;
+}
+
+.tip-icon-btn {
+    background: rgba(252, 198, 0, 0.3);
+    border: 2px solid rgba(252, 198, 0, 0.6);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.tip-icon-btn:hover {
+    background: rgba(252, 198, 0, 0.5);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.tip-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.tip-banner {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    background: rgba(252, 198, 0, 0.2);
+    border: 2px solid rgba(252, 198, 0, 0.5);
+    border-radius: 15px;
+    padding: 15px 30px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    min-width: 350px;
+    max-width: 400px;
+    animation: slideUp 0.3s ease-out;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.tip-banner.tip-open {
+    display: block;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tip-text {
+    font-size: 18px;
+    color: #FCC600;
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
 .game-header {
     display: flex;
     justify-content: space-around;
+    align-items: center;
     margin-bottom: 30px;
-    gap: 40px;
+    gap: 20px;
+}
+
+.game-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.game-title-text {
+    font-size: 48px;
+    font-weight: bold;
+    color: #FCC600;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .stat {
@@ -618,6 +727,22 @@ const restartGame = () => {
         font-size: 24px;
     }
 
+    .game-title-text {
+        font-size: 32px;
+    }
+
+    .tip-container {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .tip-banner {
+        bottom: 60px;
+        min-width: 280px;
+        max-width: 90%;
+        padding: 12px 20px;
+    }
+
     .hex-code {
         font-size: 42px;
         padding: 25px 40px;
@@ -653,6 +778,25 @@ const restartGame = () => {
     .btn-primary {
         font-size: 20px;
         padding: 15px 35px;
+    }
+
+    .tip-icon-btn {
+        width: 45px;
+        height: 45px;
+    }
+
+    .tip-icon {
+        font-size: 24px;
+    }
+
+    .tip-banner {
+        top: 55px;
+        min-width: 90%;
+        padding: 12px 20px;
+    }
+
+    .tip-text {
+        font-size: 14px;
     }
 }
 </style>
