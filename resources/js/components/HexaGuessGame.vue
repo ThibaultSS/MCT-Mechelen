@@ -50,27 +50,76 @@
                 </div>
                 
                 <div class="color-choice-buttons">
-                    <button 
-                        class="color-btn btn-red" 
-                        @click="makeChoice('red')"
-                        :disabled="showingResult"
-                    >
-                        ROOD
-                    </button>
-                    <button 
-                        class="color-btn btn-green" 
-                        @click="makeChoice('green')"
-                        :disabled="showingResult"
-                    >
-                        GROEN
-                    </button>
-                    <button 
-                        class="color-btn btn-blue" 
-                        @click="makeChoice('blue')"
-                        :disabled="showingResult"
-                    >
-                        BLAUW
-                    </button>
+                    <!-- Primaire kleuren voor eerste 7 rondes -->
+                    <template v-if="currentRound <= 7">
+                        <button 
+                            class="color-btn btn-red" 
+                            @click="makeChoice('red')"
+                            :disabled="showingResult"
+                        >
+                            ROOD
+                        </button>
+                        <button 
+                            class="color-btn btn-green" 
+                            @click="makeChoice('green')"
+                            :disabled="showingResult"
+                        >
+                            GROEN
+                        </button>
+                        <button 
+                            class="color-btn btn-blue" 
+                            @click="makeChoice('blue')"
+                            :disabled="showingResult"
+                        >
+                            BLAUW
+                        </button>
+                    </template>
+                    
+                    <!-- Regenboogkleuren voor laatste 3 rondes -->
+                    <template v-else>
+                        <button 
+                            class="color-btn btn-rainbow btn-rainbow-red" 
+                            @click="makeChoice('red')"
+                            :disabled="showingResult"
+                        >
+                            ROOD
+                        </button>
+                        <button 
+                            class="color-btn btn-rainbow btn-rainbow-orange" 
+                            @click="makeChoice('orange')"
+                            :disabled="showingResult"
+                        >
+                            ORANJE
+                        </button>
+                        <button 
+                            class="color-btn btn-rainbow btn-rainbow-yellow" 
+                            @click="makeChoice('yellow')"
+                            :disabled="showingResult"
+                        >
+                            GEEL
+                        </button>
+                        <button 
+                            class="color-btn btn-rainbow btn-rainbow-green" 
+                            @click="makeChoice('green')"
+                            :disabled="showingResult"
+                        >
+                            GROEN
+                        </button>
+                        <button 
+                            class="color-btn btn-rainbow btn-rainbow-blue" 
+                            @click="makeChoice('blue')"
+                            :disabled="showingResult"
+                        >
+                            BLAUW
+                        </button>
+                        <button 
+                            class="color-btn btn-rainbow btn-rainbow-purple" 
+                            @click="makeChoice('purple')"
+                            :disabled="showingResult"
+                        >
+                            PAARS
+                        </button>
+                    </template>
                 </div>
 
                 <!-- Result Overlay -->
@@ -119,42 +168,96 @@ const loadingColor = ref(false);
 const lastChoiceWasCorrect = ref(false);
 const tipOpen = ref(false);
 
-// Genereer een willekeurige hex kleur waar één primaire kleur dominant is
+// Genereer een willekeurige hex kleur
 const generateColor = () => {
-    const colors = ['red', 'green', 'blue'];
-    const dominantColor = colors[Math.floor(Math.random() * colors.length)];
+    const isHardMode = currentRound.value >= 8; // Laatste 3 rondes (8, 9, 10)
     
-    let r, g, b;
-    
-    // Zorg dat de dominante kleur hoog is (200-255) en de andere laag (0-100)
-    switch (dominantColor) {
-        case 'red':
-            r = Math.floor(Math.random() * 56) + 200; // 200-255
-            g = Math.floor(Math.random() * 101); // 0-100
-            b = Math.floor(Math.random() * 101); // 0-100
-            break;
-        case 'green':
-            r = Math.floor(Math.random() * 101); // 0-100
-            g = Math.floor(Math.random() * 56) + 200; // 200-255
-            b = Math.floor(Math.random() * 101); // 0-100
-            break;
-        case 'blue':
-            r = Math.floor(Math.random() * 101); // 0-100
-            g = Math.floor(Math.random() * 101); // 0-100
-            b = Math.floor(Math.random() * 56) + 200; // 200-255
-            break;
+    if (isHardMode) {
+        // Moeilijke modus: Regenboogkleuren
+        const rainbowColors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+        const dominantColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+        
+        let r, g, b;
+        
+        // Moeilijker: kleuren dichter bij elkaar, maar nog steeds herkenbaar
+        switch (dominantColor) {
+            case 'red':
+                r = Math.floor(Math.random() * 40) + 215; // 215-255
+                g = Math.floor(Math.random() * 80) + 20; // 20-100
+                b = Math.floor(Math.random() * 80) + 20; // 20-100
+                break;
+            case 'orange':
+                r = Math.floor(Math.random() * 40) + 215; // 215-255
+                g = Math.floor(Math.random() * 50) + 100; // 100-150
+                b = Math.floor(Math.random() * 50) + 20; // 20-70
+                break;
+            case 'yellow':
+                r = Math.floor(Math.random() * 40) + 215; // 215-255
+                g = Math.floor(Math.random() * 40) + 215; // 215-255
+                b = Math.floor(Math.random() * 80) + 20; // 20-100
+                break;
+            case 'green':
+                r = Math.floor(Math.random() * 80) + 20; // 20-100
+                g = Math.floor(Math.random() * 40) + 215; // 215-255
+                b = Math.floor(Math.random() * 80) + 20; // 20-100
+                break;
+            case 'blue':
+                r = Math.floor(Math.random() * 80) + 20; // 20-100
+                g = Math.floor(Math.random() * 80) + 20; // 20-100
+                b = Math.floor(Math.random() * 40) + 215; // 215-255
+                break;
+            case 'purple':
+                r = Math.floor(Math.random() * 50) + 130; // 130-180
+                g = Math.floor(Math.random() * 80) + 20; // 20-100
+                b = Math.floor(Math.random() * 40) + 215; // 215-255
+                break;
+        }
+        
+        const hex = '#' + 
+            r.toString(16).padStart(2, '0').toUpperCase() + 
+            g.toString(16).padStart(2, '0').toUpperCase() + 
+            b.toString(16).padStart(2, '0').toUpperCase();
+        
+        return {
+            hex,
+            dominantColor
+        };
+    } else {
+        // Normale modus: Primaire kleuren (rood, groen, blauw)
+        const colors = ['red', 'green', 'blue'];
+        const dominantColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        let r, g, b;
+        
+        // Zorg dat de dominante kleur hoog is (200-255) en de andere laag (0-100)
+        switch (dominantColor) {
+            case 'red':
+                r = Math.floor(Math.random() * 56) + 200; // 200-255
+                g = Math.floor(Math.random() * 101); // 0-100
+                b = Math.floor(Math.random() * 101); // 0-100
+                break;
+            case 'green':
+                r = Math.floor(Math.random() * 101); // 0-100
+                g = Math.floor(Math.random() * 56) + 200; // 200-255
+                b = Math.floor(Math.random() * 101); // 0-100
+                break;
+            case 'blue':
+                r = Math.floor(Math.random() * 101); // 0-100
+                g = Math.floor(Math.random() * 101); // 0-100
+                b = Math.floor(Math.random() * 56) + 200; // 200-255
+                break;
+        }
+        
+        const hex = '#' + 
+            r.toString(16).padStart(2, '0').toUpperCase() + 
+            g.toString(16).padStart(2, '0').toUpperCase() + 
+            b.toString(16).padStart(2, '0').toUpperCase();
+        
+        return {
+            hex,
+            dominantColor
+        };
     }
-    
-    // Converteer naar hex
-    const hex = '#' + 
-        r.toString(16).padStart(2, '0').toUpperCase() + 
-        g.toString(16).padStart(2, '0').toUpperCase() + 
-        b.toString(16).padStart(2, '0').toUpperCase();
-    
-    return {
-        hex,
-        dominantColor
-    };
 };
 
 const startGame = () => {
@@ -186,8 +289,11 @@ const nextRound = () => {
 const getColorName = (color) => {
     const names = {
         'red': 'ROOD',
+        'orange': 'ORANJE',
+        'yellow': 'GEEL',
         'green': 'GROEN',
-        'blue': 'BLAUW'
+        'blue': 'BLAUW',
+        'purple': 'PAARS'
     };
     return names[color] || color.toUpperCase();
 };
@@ -499,8 +605,11 @@ const restartGame = () => {
 
 .color-choice-buttons {
     display: flex;
-    gap: 30px;
+    gap: 20px;
     justify-content: center;
+    flex-wrap: wrap;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .color-btn {
@@ -515,6 +624,12 @@ const restartGame = () => {
     border: 4px solid rgba(255, 255, 255, 0.3);
     text-transform: uppercase;
     min-width: 180px;
+}
+
+.btn-rainbow {
+    padding: 20px 40px;
+    font-size: 22px;
+    min-width: 140px;
 }
 
 .color-btn:disabled {
@@ -534,6 +649,37 @@ const restartGame = () => {
 
 .btn-blue {
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+}
+
+/* Regenboogkleuren knoppen */
+.btn-rainbow-red {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: white;
+}
+
+.btn-rainbow-orange {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    color: white;
+}
+
+.btn-rainbow-yellow {
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+    color: #07103E;
+}
+
+.btn-rainbow-green {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: white;
+}
+
+.btn-rainbow-blue {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+}
+
+.btn-rainbow-purple {
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
     color: white;
 }
 
