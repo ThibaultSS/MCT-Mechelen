@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Student extends Model
+class Heaguess extends Model
 {
     protected $fillable = [
-        'username',
-        'email',
+        'student_id',
+        'score',
+        'time',
         'total_score',
     ];
 }

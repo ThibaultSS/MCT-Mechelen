@@ -6,13 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('students', function (Blueprint $table) {
+        Schema::create('heaguesss', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->unique();
-            $table->string('email')->unique();
-            $table->integer('total_score')->default(0);
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
+            $table->integer('score');
+            $table->integer('time');
+            $table->integer('total_score');
             $table->timestamps();
         });
     }
@@ -22,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('students');
+        Schema::dropIfExists('heaguesss');
     }
 };
