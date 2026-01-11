@@ -31,3 +31,11 @@ Route::get('/game/ai-or-not', function () {
 Route::get('/game/hexa-guess', function () {
     return view('game.hexa-guess');
 })->name('game.hexa-guess');
+
+Route::get('/game/code-quest', function () {
+    return view('game.code-quest');
+})->name('game.code-quest');
+
+Route::get('/game/riddle', function () {
+    return view('game.riddle');
+})->name('game.riddle');

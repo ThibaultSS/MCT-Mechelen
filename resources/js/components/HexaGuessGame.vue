@@ -135,16 +135,19 @@
             </div>
         </div>
 
-        <!-- Game Over Screen -->
-        <div v-if="gameEnded" class="game-over-screen">
-            <div class="game-over-content">
-                <h1 class="game-over-title">Challenge voltooid!</h1>
-                <p class="result-text">
+        <!-- Game Over Modal -->
+        <div
+            v-if="gameEnded"
+            class="modal-overlay"
+        >
+            <div class="modal-content">
+                <h2 class="modal-title">Challenge voltooid!</h2>
+                <p class="modal-text">
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
                 </p>
-                <div class="game-over-actions">
-                    <a href="/" class="btn-primary">
-                        Terug naar Home
+                <div class="modal-actions">
+                    <a href="/game/code-quest" class="btn btn-primary">
+                        Volgende Challenge
                     </a>
                 </div>
             </div>
@@ -774,76 +777,77 @@ const restartGame = () => {
     }
 }
 
-/* Game Over Screen */
-.game-over-screen {
-    width: 100%;
-    height: 100%;
+/* Modal */
+.modal-overlay {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #07103E 0%, #147ED8 100%);
+    background: rgba(7, 16, 62, 0.9);
+    z-index: 50;
 }
 
-.game-over-content {
+.modal-content {
+    background: #07103E;
+    border: 2px solid #147ED8;
+    border-radius: 0.75rem;
+    padding: 2.5rem;
     text-align: center;
-    padding: 50px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 30px;
-    backdrop-filter: blur(10px);
-    border: 3px solid rgba(255, 255, 255, 0.2);
-    max-width: 600px;
+    max-width: 28rem;
     width: 90%;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.3),
+        0 0 30px rgba(20, 126, 216, 0.2);
 }
 
-.game-over-title {
-    font-size: 56px;
-    font-weight: bold;
-    margin-bottom: 30px;
+.modal-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
     color: #FCC600;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
-.result-text {
-    font-size: 32px;
+.modal-text {
+    font-size: 1.125rem;
     color: #cbd5e1;
-    margin-bottom: 40px;
-    line-height: 1.6;
+    margin-bottom: 1.5rem;
 }
 
-.result-text strong {
+.modal-text strong {
     color: #FCC600;
     font-weight: 700;
 }
 
-.game-over-actions {
+.modal-actions {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .btn-primary {
-    padding: 18px 50px;
-    font-size: 24px;
-    font-weight: bold;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    display: inline-block;
-    background: linear-gradient(135deg, #FB6E00 0%, #FCC600 100%);
+    background: #FCC600;
     color: #07103E;
 }
 
 .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
-}
-
-.btn-primary:active {
+    background: #FB6E00;
+    color: #fff;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(251, 110, 0, 0.4);
 }
 
 /* Responsive */
@@ -913,17 +917,17 @@ const restartGame = () => {
         padding: 20px 40px;
     }
 
-    .game-over-title {
-        font-size: 36px;
+    .modal-title {
+        font-size: 1.5rem;
     }
 
-    .result-text {
-        font-size: 24px;
+    .modal-text {
+        font-size: 1rem;
     }
 
-    .btn-primary {
-        font-size: 20px;
-        padding: 15px 35px;
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.6rem 1.5rem;
     }
 
     .tip-icon-btn {
