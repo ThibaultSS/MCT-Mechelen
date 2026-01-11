@@ -51,14 +51,22 @@
                     </button>
                 </div>
 
-                <div v-if="showingResult" class="result-message" :class="resultClass">
-                    <p>{{ resultMessage }}</p>
-                    <button class="btn-next" @click="nextRound" v-if="currentRound < totalRounds">
-                        Volgende Ronde
-                    </button>
-                    <button class="btn-next" @click="endGame" v-else>
-                        Resultaten Bekijken
-                    </button>
+                <!-- Result Pop-up -->
+                <div v-if="showingResult" class="result-popup-overlay">
+                    <div class="result-popup" :class="resultClass">
+                        <h3 class="result-popup-title">{{ resultMessage }}</h3>
+                        <p v-if="!selectedAnswerCorrect" class="correct-answer-text">
+                            Het juiste antwoord is: <strong>{{ correctAnswerText }}</strong>
+                        </p>
+                        <div class="result-popup-actions">
+                            <button class="btn-next" @click="nextRound" v-if="currentRound < totalRounds">
+                                Volgende Ronde
+                            </button>
+                            <button class="btn-next" @click="endGame" v-else>
+                                Resultaten Bekijken
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,32 +97,108 @@ import { ref, computed, onMounted } from 'vue';
 const gameStarted = ref(false);
 const gameEnded = ref(false);
 const currentRound = ref(1);
-const totalRounds = ref(10);
+const totalRounds = ref(5);
 const score = ref(0);
 const selectedAnswer = ref(null);
 const showingResult = ref(false);
 const resultMessage = ref('');
 const resultClass = ref('');
+const selectedAnswerCorrect = ref(false);
+const correctAnswerText = ref('');
 
-const riddle = ref('Ik vergelijk twee namen.\nDe eerste begint met K en eindigt met G.\nDe tweede start met T en eindigt met M.\nWat ertussen zit, maakt het verschil duidelijk:\nde eerste wint altijd van de tweede.');
-
-const answers = ref([
-    { text: 'KDG is beter dan TSM', correct: true },
-    { text: 'KDG is beter dan TSM', correct: true },
-    { text: 'KDG is beter dan TSM', correct: true },
-    { text: 'KDG is beter dan TSM', correct: true }
-]);
-
-const normalAnswers = [
-    { text: 'KDG is beter dan TSM', correct: true },
-    { text: 'TSM is beter dan KDG', correct: false },
-    { text: 'KDG en TSM zijn gelijk', correct: false },
-    { text: 'Geen van beide', correct: false }
+const riddles = [
+    {
+        question: 'Ik vergelijk twee namen.\nDe eerste begint met K en eindigt met G.\nDe tweede start met T en eindigt met M.\nWat ertussen zit, maakt het verschil duidelijk:\nde eerste wint altijd van de tweede.',
+        answers: [
+            { text: 'KDG is beter dan TSM', correct: true },
+            { text: 'TSM is beter dan KDG', correct: false },
+            { text: 'KDG en TSM zijn gelijk', correct: false },
+            { text: 'Geen van beide', correct: false }
+        ],
+        firstRoundAnswers: [
+            { text: 'KDG is beter dan TSM', correct: true },
+            { text: 'KDG is beter dan TSM', correct: true },
+            { text: 'KDG is beter dan TSM', correct: true },
+            { text: 'KDG is beter dan TSM', correct: true }
+        ]
+    },
+    {
+        question: 'Ik reageer niet op woorden, maar op druk en balans.\nMijn ritme bepaalt of jij punten scoort.\nZonder zadel en teugels ben ik moeilijk te sturen,\nmaar zonder mij sta jij stil in de ring.\nWat ben ik?',
+        answers: [
+            { text: 'Een ruiter', correct: false },
+            { text: 'Een paard', correct: true },
+            { text: 'Een hoefsmid', correct: false },
+            { text: 'Een rijbaan', correct: false }
+        ],
+        firstRoundAnswers: [
+            { text: 'Een paard', correct: true },
+            { text: 'Een paard', correct: true },
+            { text: 'Een paard', correct: true },
+            { text: 'Een paard', correct: true }
+        ]
+    },
+    {
+        question: 'Ik bereikte de macht zonder politieke ervaring.\nMijn naam werd een merk en een werkwoord.\nIk verdeelde meningen meer dan stemmen.\nWie past het best bij deze beschrijving?',
+        answers: [
+            { text: 'Joe Biden', correct: false },
+            { text: 'Elon Musk', correct: false },
+            { text: 'Donald Trump', correct: true },
+            { text: 'Ronald Reagan', correct: false }
+        ],
+        firstRoundAnswers: [
+            { text: 'Donald Trump', correct: true },
+            { text: 'Donald Trump', correct: true },
+            { text: 'Donald Trump', correct: true },
+            { text: 'Donald Trump', correct: true }
+        ]
+    },
+    {
+        question: 'Ik ben vloeibaar, maar geen natuurproduct.\nMijn prik verdwijnt als ik te lang wacht.\nSuiker maakt mij populair,\nmaar water blijft gezonder dan ik.\nWat ben ik?',
+        answers: [
+            { text: 'Mineraalwater', correct: false },
+            { text: 'Vruchtensap', correct: false },
+            { text: 'Frisdrank', correct: true },
+            { text: 'Thee', correct: false }
+        ],
+        firstRoundAnswers: [
+            { text: 'Frisdrank', correct: true },
+            { text: 'Frisdrank', correct: true },
+            { text: 'Frisdrank', correct: true },
+            { text: 'Frisdrank', correct: true }
+        ]
+    },
+    {
+        question: 'Ik ben bijna onzichtbaar voor het blote oog.\nIk overleef extreme kou, hitte en zelfs vacuüm.\nIk leef wanneer er water is, maar kan bijna alles verdragen.\nWat ben ik?',
+        answers: [
+            { text: 'Een bacterie', correct: false },
+            { text: 'Een waterbeertje', correct: true },
+            { text: 'Een amoebe', correct: false },
+            { text: 'Een insect', correct: false }
+        ],
+        firstRoundAnswers: [
+            { text: 'Een waterbeertje', correct: true },
+            { text: 'Een waterbeertje', correct: true },
+            { text: 'Een waterbeertje', correct: true },
+            { text: 'Een waterbeertje', correct: true }
+        ]
+    }
 ];
+
+const riddle = ref('');
+const answers = ref([]);
 
 const startGame = () => {
     gameStarted.value = true;
     resetRound();
+};
+
+const getCurrentRiddle = () => {
+    // Gebruik elk raadsel voor één ronde: 1, 2, 3, 4, 5
+    if (currentRound.value === 1) return riddles[0];
+    if (currentRound.value === 2) return riddles[1];
+    if (currentRound.value === 3) return riddles[2];
+    if (currentRound.value === 4) return riddles[3];
+    return riddles[4]; // Ronde 5 = raadsel 5
 };
 
 const resetRound = () => {
@@ -122,18 +206,18 @@ const resetRound = () => {
     showingResult.value = false;
     resultMessage.value = '';
     resultClass.value = '';
+    selectedAnswerCorrect.value = false;
+    correctAnswerText.value = '';
     
-    // Voor de eerste ronde: alle antwoorden zijn hetzelfde (grappig!)
+    const currentRiddleData = getCurrentRiddle();
+    riddle.value = currentRiddleData.question;
+    
+    // Alleen voor de eerste ronde: alle antwoorden zijn hetzelfde (grappig!)
     if (currentRound.value === 1) {
-        answers.value = [
-            { text: 'KDG is beter dan TSM', correct: true },
-            { text: 'KDG is beter dan TSM', correct: true },
-            { text: 'KDG is beter dan TSM', correct: true },
-            { text: 'KDG is beter dan TSM', correct: true }
-        ];
+        answers.value = currentRiddleData.firstRoundAnswers.map(a => ({ ...a }));
     } else {
         // Voor de andere rondes: normale antwoorden
-        answers.value = [...normalAnswers];
+        answers.value = currentRiddleData.answers.map(a => ({ ...a }));
     }
 };
 
@@ -146,13 +230,19 @@ const selectAnswer = (index) => {
     // Direct resultaat tonen
     showingResult.value = true;
     
+    const currentRiddleData = getCurrentRiddle();
+    const correctAnswer = currentRiddleData.answers.find(a => a.correct);
+    correctAnswerText.value = correctAnswer.text;
+    
     if (answer.correct) {
         score.value++;
         resultMessage.value = 'Correct! 🎉';
         resultClass.value = 'correct';
+        selectedAnswerCorrect.value = true;
     } else {
-        resultMessage.value = 'Helaas, dat is niet correct. Het juiste antwoord is: KDG is beter dan TSM';
+        resultMessage.value = 'Helaas, dat is niet correct.';
         resultClass.value = 'incorrect';
+        selectedAnswerCorrect.value = false;
     }
 };
 
@@ -252,11 +342,12 @@ const endGame = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 40px;
+    padding: 15px 30px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
     backdrop-filter: blur(10px);
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .stat {
@@ -297,26 +388,28 @@ const endGame = () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 40px;
-    padding: 40px;
+    gap: 30px;
+    padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
+    overflow-y: auto;
 }
 
 .riddle-question {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 20px;
-    padding: 40px;
+    padding: 30px;
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.2);
     width: 100%;
     text-align: center;
+    max-width: 900px;
 }
 
 .question-text {
-    font-size: 28px;
-    line-height: 1.8;
+    font-size: 24px;
+    line-height: 1.6;
     color: white;
     white-space: pre-line;
     margin: 0;
@@ -326,26 +419,27 @@ const endGame = () => {
 .answers-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 15px;
     width: 100%;
-    max-width: 1000px;
+    max-width: 900px;
 }
 
 .answer-btn {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 25px 30px;
+    gap: 15px;
+    padding: 20px 25px;
     background: rgba(255, 255, 255, 0.1);
     border: 3px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
     cursor: pointer;
     transition: all 0.3s;
     backdrop-filter: blur(10px);
-    font-size: 20px;
+    font-size: 18px;
     color: white;
     text-align: left;
     position: relative;
+    min-height: 70px;
 }
 
 .answer-btn:hover:not(.disabled) {
@@ -411,30 +505,77 @@ const endGame = () => {
     font-weight: 500;
 }
 
-/* Result Message */
-.result-message {
+/* Result Pop-up */
+.result-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.result-popup {
+    background: linear-gradient(135deg, #07103E 0%, #147ED8 100%);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
     text-align: center;
-    padding: 30px;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
-    width: 100%;
-    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    animation: popupSlideIn 0.3s ease-out;
 }
 
-.result-message.correct {
-    background: rgba(0, 255, 0, 0.2);
-    border: 2px solid #00ff00;
+.result-popup.correct {
+    border-color: #00ff00;
+    box-shadow: 0 20px 60px rgba(0, 255, 0, 0.3);
 }
 
-.result-message.incorrect {
-    background: rgba(255, 0, 0, 0.2);
-    border: 2px solid #ff0000;
+.result-popup.incorrect {
+    border-color: #ff0000;
+    box-shadow: 0 20px 60px rgba(255, 0, 0, 0.3);
 }
 
-.result-message p {
-    font-size: 24px;
-    margin-bottom: 20px;
+.result-popup-title {
+    font-size: 28px;
     font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.result-popup.correct .result-popup-title {
+    color: #00ff00;
+}
+
+.result-popup.incorrect .result-popup-title {
+    color: #ff0000;
+}
+
+.correct-answer-text {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 25px;
+    line-height: 1.5;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.correct-answer-text strong {
+    color: #FCC600;
+    font-size: 20px;
+}
+
+.result-popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
 .btn-next {
@@ -474,6 +615,17 @@ const endGame = () => {
     }
     75% {
         transform: translateX(10px);
+    }
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
     }
 }
 
