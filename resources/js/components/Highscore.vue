@@ -1,43 +1,55 @@
 <template>
-    <div class="highscore-container">
-        <h1 class="highscore-title">Highscores</h1>
-        <div v-if="loading" class="loading">Loading...</div>
-        <div v-else>
-            <ul class="highscore-list">
-                <li v-for="(score, index) in scores" :key="index" class="highscore-item">
-                    <span class="player-name">{{ score.username }}</span>: <span class="player-score">{{ score.total_score }}</span>
-                </li>
-            </ul>
+    <div class="body">
+        <div class="highscore-container">
+            <h1 class="highscore-title">Highscores</h1>
+            <div v-if="loading" class="loading">Loading...</div>
+            <div v-else>
+                <ul class="highscore-list">
+                    <li v-for="(score, index) in scores" :key="index" class="highscore-item">
+                        <span class="player-name">{{ score.username }}</span> <span class="player-score">{{ score.total_score }}</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
+
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const scores = ref([]);
 const loading = ref(true);
+let intervalId = null;
 
 const fetchScores = async () => {
-    try {
-        const response = await fetch('https://mct-mechelen.test/bubblesort');
-        if (!response.ok) throw new Error('Network response was not ok');
-        scores.value = await response.json();
-    } catch (error) {
-        console.error('Error fetching scores:', error);
-    } finally {
-        loading.value = false;
-    }
+  try {
+    const response = await fetch('https://mct-mechelen.test/bubblesort');
+    if (!response.ok) throw new Error('Network response was not ok');
+    scores.value = await response.json();
+  } catch (error) {
+    console.error('Error fetching scores:', error);
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(() => {
+  fetchScores();
+
+  intervalId = setInterval(() => {
     fetchScores();
+  }, 5000);
+});
+
+onUnmounted(() => {
+  clearInterval(intervalId);
 });
 </script>
 
 <style scoped>
 /* Page background */
-body {
+.body {
   margin: 0;
   min-height: 100vh;
   background: radial-gradient(
@@ -52,7 +64,6 @@ body {
   align-items: center;
 }
 
-/* Container */
 .highscore-container {
   width: 500px;
   max-width: 90%;
@@ -69,7 +80,6 @@ body {
     0 18px 30px rgba(0, 0, 0, 0.35);
 }
 
-/* Title */
 .highscore-title {
   text-align: center;
   font-size: 36px;
@@ -79,7 +89,6 @@ body {
   text-transform: uppercase;
 }
 
-/* Loading */
 .loading {
   text-align: center;
   font-size: 20px;
@@ -87,14 +96,12 @@ body {
   color: #0b1b3d;
 }
 
-/* List */
 .highscore-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-/* List item */
 .highscore-item {
   display: flex;
   justify-content: space-between;
@@ -112,7 +119,6 @@ body {
   box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.35);
 }
 
-/* Player name */
 .player-name {
   max-width: 65%;
   overflow: hidden;
@@ -120,13 +126,11 @@ body {
   white-space: nowrap;
 }
 
-/* Score */
 .player-score {
   font-size: 22px;
   font-weight: 800;
 }
 
-/* First place highlight */
 .highscore-item:first-child {
   background: rgba(255, 255, 255, 0.45);
   box-shadow:
