@@ -6,6 +6,7 @@ import AiOrNotGame from './components/AiOrNotGame.vue';
 import HexaGuessGame from './components/HexaGuessGame.vue';
 import CodeSlepenGame from './components/CodeSlepenGame.vue';
 import RiddleGame from './components/RiddleGame.vue';
+import Highscore from './components/Highscore.vue';
 
 // Wacht tot DOM geladen is
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     app.component('hexa-guess-game', HexaGuessGame);
     app.component('code-quest-game', CodeSlepenGame);
     app.component('riddle-game', RiddleGame);
+    app.component('highscore-component', Highscore);
 
     // Mount de app op een element in je Blade template
     const appElement = document.getElementById('app');
