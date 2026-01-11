@@ -4,6 +4,7 @@ import ExampleComponent from './components/ExampleComponent.vue';
 import CometTypingGame from './components/CometTypingGame.vue';
 import AiOrNotGame from './components/AiOrNotGame.vue';
 import HexaGuessGame from './components/HexaGuessGame.vue';
+import Highscore from './components/Highscore.vue';
 
 // Wacht tot DOM geladen is
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     app.component('comet-typing-game', CometTypingGame);
     app.component('ai-or-not-game', AiOrNotGame);
     app.component('hexa-guess-game', HexaGuessGame);
+    app.component('highscore-component', Highscore);
 
     // Mount de app op een element in je Blade template
     const appElement = document.getElementById('app');
