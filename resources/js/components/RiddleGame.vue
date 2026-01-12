@@ -82,7 +82,7 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <a href="/" class="btn btn-primary">
+                    <a :href="`/score/riddle/${score}`" class="btn btn-primary">
                         Terug naar Home
                     </a>
                 </div>
