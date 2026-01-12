@@ -146,7 +146,7 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <a href="/game/code-quest" class="btn btn-primary">
+                    <a :href="`/score/hexa-guess/${score}`" class="btn btn-primary">
                         Volgende Challenge
                     </a>
                 </div>

@@ -177,7 +177,7 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ maxScore }}</strong> punten behaald!
                 </p>
                 <div class="modal-actions">
-                    <a href="/game/riddle" class="btn btn-primary">
+                    <a :href="`/score/code-quest/${score}`" class="btn btn-primary">
                         Volgende Challenge
                     </a>
                 </div>

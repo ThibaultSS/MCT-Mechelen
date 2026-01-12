@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Riddle;
 use App\Models\Student;
-use App\Models\Heaguess;
 
-class CalculateHexaScore extends Controller
+class CalculateRiddleScore extends Controller
 {
     public function calculateScore($score)
     {
-        Heaguess::create([
+        Riddle::create([
             'student_id' => session('student_id'),
             'time' => 0,
             'score' => $score,
@@ -21,7 +21,7 @@ class CalculateHexaScore extends Controller
         Student::where('id', session('student_id'))->update([
             'total_score' => Student::find(session('student_id'))->total_score + $score,
         ]);
-        return view("game.code-quest");
-        
+        return view("game.highscore");   
+
     }
 }

@@ -6,6 +6,8 @@ use App\Http\Controllers\CalculateCometScore;
 use App\Http\Controllers\CalculateAiScore;
 use App\Http\Controllers\CalculateHexaScore;
 use App\Http\Controllers\BubbleController;  
+use App\Http\Controllers\CodequestController;
+use App\Http\Controllers\CalculateRiddleScore;
 
 Route::get('/', function () {
     return view('login');
@@ -14,6 +16,8 @@ Route::get('/', function () {
 Route::get('/score/comet-typing/{score}', [CalculateCometScore::class, 'calculateScore']);
 Route::get('/score/ai-or-not/{score}', [CalculateAiScore::class, 'calculateScore']);
 Route::get('/score/hexa-guess/{score}', [CalculateHexaScore::class, 'calculateScore']);
+Route::get('/score/code-quest/{score}', [CodequestController::class, 'calculateScore']);
+Route::get('/score/riddle/{score}', [CalculateRiddleScore::class, 'calculateScore']);
 Route::get('/highscores', [BubbleController::class, 'showHighscore']);
 Route::get('/bubblesort', [BubbleController::class, 'bubbleSorter']);
 Route::post('/loginRun', [LoginController::class, 'loginRun']);
