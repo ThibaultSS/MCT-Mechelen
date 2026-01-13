@@ -67,9 +67,14 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <a :href="`/score/ai-or-not/${score}`" class="btn btn-primary">
-                        Volgende Challenge
-                    </a>
+                    <form method="POST" action="/score/ai-or-not">
+                        <input type="hidden" name="score" :value="score">
+                        <input type="hidden" name="_token" :value="csrfToken">
+
+                        <button type="submit" class="btn btn-primary">
+                            Volgende Challenge
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -91,6 +96,7 @@ const resultClass = ref('');
 const lastSelectedImage = ref(null);
 const lastChoiceWasCorrect = ref(false);
 const loadingImages = ref(false);
+const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
 
 // Helper functie om pad van AI afbeelding te krijgen
 const getAIImagePath = (number) => {

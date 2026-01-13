@@ -129,9 +129,14 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ TOTAL_WORDS }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <a :href="`/score/comet-typing/${score}`" class="btn btn-primary">
-                        Volgende Challenge
-                    </a>
+                    <form method="POST" action="/score/comet-typing">
+                        <input type="hidden" name="score" :value="score">
+                        <input type="hidden" name="_token" :value="csrfToken">
+
+                        <button type="submit" class="btn btn-primary">
+                            Volgende Challenge
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -151,6 +156,7 @@ const FAST_COMET_CHANCE = 0.18; // 18% kans op een snelle komeet
 const FAST_COMET_FIXED_SPEED = 4.5; // Vaste snelheid voor snelle kometen
 const MULTIPLE_COMET_CHANCE = 0.45; // 45% kans op meerdere kometen tegelijk
 const MAX_SIMULTANEOUS_COMETS = 2; // Maximaal 2 kometen tegelijk
+const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
 
 // Eenvoudige woorden (30)
 const EASY_WORDS = [

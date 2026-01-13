@@ -251,9 +251,15 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ maxScore }}</strong> punten behaald!
                 </p>
                 <div class="modal-actions">
-                    <a :href="`/score/code-quest/${score}`" class="btn btn-primary">
-                        Volgende Challenge
-                    </a>
+                    <form method="POST" action="/score/code-quest">
+                        <input type="hidden" name="score" :value="score">
+                        <input type="hidden" name="_token" :value="csrfToken">
+
+                        <button type="submit" class="btn btn-primary">
+                            Volgende Challenge
+                        </button>
+                    </form>
+
                 </div>
             </div>
         </div>
@@ -280,6 +286,7 @@ const hasChecked = ref(false);
 const draggedItem = ref(null);
 const draggedItemIndex = ref(null);
 const dragOverCategory = ref(null);
+const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
 
 // Game state
 const shuffledItems = ref([]);
@@ -1013,6 +1020,7 @@ const endGame = () => {
     gameEnded.value = true;
     gameStarted.value = false;
 };
+
 </script>
 
 <style scoped>
