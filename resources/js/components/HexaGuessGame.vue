@@ -27,6 +27,11 @@
                 </div>
             </div>
             
+            <!-- Round Type Indicator -->
+            <div v-if="currentRound >= 8" class="round-type-indicator">
+                <span class="round-type">REGENBOOG ROUND</span>
+            </div>
+            
             <!-- Tip Container (rechtsonder) -->
             <div class="tip-container">
                 <button class="tip-icon-btn" @click="toggleTip">
@@ -113,11 +118,18 @@
                             BLAUW
                         </button>
                         <button 
+                            class="color-btn btn-rainbow btn-rainbow-indigo" 
+                            @click="makeChoice('indigo')"
+                            :disabled="showingResult"
+                        >
+                            INDIGO
+                        </button>
+                        <button 
                             class="color-btn btn-rainbow btn-rainbow-purple" 
                             @click="makeChoice('purple')"
                             :disabled="showingResult"
                         >
-                            PAARS
+                            VIOLET
                         </button>
                     </template>
                 </div>
@@ -176,8 +188,8 @@ const generateColor = () => {
     const isHardMode = currentRound.value >= 8; // Laatste 3 rondes (8, 9, 10)
     
     if (isHardMode) {
-        // Moeilijke modus: Regenboogkleuren
-        const rainbowColors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+        // Moeilijke modus: Regenboogkleuren (alle 7 kleuren)
+        const rainbowColors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple'];
         const dominantColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
         
         let r, g, b;
@@ -208,6 +220,11 @@ const generateColor = () => {
                 r = Math.floor(Math.random() * 80) + 20; // 20-100
                 g = Math.floor(Math.random() * 80) + 20; // 20-100
                 b = Math.floor(Math.random() * 40) + 215; // 215-255
+                break;
+            case 'indigo':
+                r = Math.floor(Math.random() * 50) + 75; // 75-125
+                g = Math.floor(Math.random() * 50) + 20; // 20-70
+                b = Math.floor(Math.random() * 40) + 130; // 130-170
                 break;
             case 'purple':
                 r = Math.floor(Math.random() * 50) + 130; // 130-180
@@ -296,7 +313,8 @@ const getColorName = (color) => {
         'yellow': 'GEEL',
         'green': 'GROEN',
         'blue': 'BLAUW',
-        'purple': 'PAARS'
+        'indigo': 'INDIGO',
+        'purple': 'VIOLET'
     };
     return names[color] || color.toUpperCase();
 };
@@ -541,6 +559,35 @@ const restartGame = () => {
     color: #FCC600;
 }
 
+/* Round Type Indicator */
+.round-type-indicator {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.round-type {
+    font-size: 28px;
+    font-weight: bold;
+    color: #FCC600;
+    background: rgba(252, 198, 0, 0.2);
+    padding: 12px 40px;
+    border-radius: 15px;
+    border: 3px solid rgba(252, 198, 0, 0.5);
+    display: inline-block;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+    animation: rainbowPulse 2s ease-in-out infinite;
+}
+
+@keyframes rainbowPulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(252, 198, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(252, 198, 0, 0.6);
+    }
+}
+
 /* Loading Screen */
 .loading-screen {
     flex: 1;
@@ -630,9 +677,9 @@ const restartGame = () => {
 }
 
 .btn-rainbow {
-    padding: 20px 40px;
-    font-size: 22px;
-    min-width: 140px;
+    padding: 18px 35px;
+    font-size: 20px;
+    min-width: 120px;
 }
 
 .color-btn:disabled {
@@ -678,6 +725,11 @@ const restartGame = () => {
 
 .btn-rainbow-blue {
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+}
+
+.btn-rainbow-indigo {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
     color: white;
 }
 
