@@ -56,7 +56,11 @@
                 </div>
 
                 <div class="drop-zones-area">
-                    <div class="drop-zones-label">Juiste volgorde: &lt;header&gt; → &lt;nav&gt; → &lt;main&gt; → &lt;section&gt; → &lt;footer&gt;</div>
+                    <div class="drop-zones-label">
+                        <span v-if="currentRound === 2">Juiste volgorde: &lt;header&gt; → &lt;nav&gt; → &lt;main&gt; → &lt;section&gt; → &lt;footer&gt;</span>
+                        <span v-else-if="currentRound === 5">Juiste volgorde: CSS selector → CSS properties → Sluitende accolade</span>
+                        <span v-else-if="currentRound === 8">Juiste volgorde: Functie declaratie → Variabelen → Logica → Return → Sluitende accolade</span>
+                    </div>
                     <div class="drop-zones-list">
                         <div
                             v-for="(slot, index) in dropSlots"
@@ -162,17 +166,19 @@
                 </button>
             </div>
 
-            <!-- Categorizing Round -->
+            <!-- Categorizing Round (HTML of CSS) -->
             <div v-else-if="isCategorizingRound" class="categorizing-container">
                 <div class="code-items-area">
-                    <div class="code-items-label">Klik op een code snippet om te selecteren:</div>
+                    <div class="code-items-label">Sleep de code snippets naar de juiste categorie:</div>
                     <div class="code-items-list">
                         <div
                             v-for="(item, index) in shuffledItems"
                             :key="'shuffled-' + index"
                             class="code-item"
-                            @click="selectItem(item, index)"
-                            :class="{ 'selected': selectedItemIndex === index, 'used': item.used }"
+                            :class="{ 'used': item.used }"
+                            :draggable="!item.used && !showingResult"
+                            @dragstart="onDragStart($event, item, index)"
+                            @dragend="onDragEnd"
                         >
                             <code>{{ item.code }}</code>
                         </div>
@@ -186,8 +192,10 @@
                             v-for="category in categories"
                             :key="category.name"
                             class="category-drop-zone"
-                            @click="placeInCategory(category.name)"
-                            :class="{ 'clickable': selectedItem !== null }"
+                            :class="{ 'drag-over': dragOverCategory === category.name }"
+                            @dragover.prevent="onDragOver(category.name)"
+                            @dragleave="onDragLeave"
+                            @drop="onDropCategory(category.name)"
                         >
                             <div class="category-header">{{ category.label }}</div>
                             <div class="category-items">
@@ -210,7 +218,7 @@
                                         ×
                                     </button>
                                 </div>
-                                <div v-if="category.items.length === 0" class="category-empty">Drop hier</div>
+                                <div v-if="category.items.length === 0" class="category-empty">Sleep hier</div>
                             </div>
                         </div>
                     </div>
@@ -263,9 +271,9 @@ import { ref, computed } from 'vue';
 const gameStarted = ref(false);
 const gameEnded = ref(false);
 const currentRound = ref(0);
-const totalRounds = ref(3);
+const totalRounds = ref(10);
 const score = ref(0);
-const maxScore = ref(15);
+const maxScore = ref(50);
 const showingResult = ref(false);
 const resultMessage = ref('');
 const resultClass = ref('');
@@ -317,6 +325,89 @@ const codeDatabase = {
             { code: '<img src="image.jpg">', correct: true },
             { code: '<a href="link">Link</a>', correct: true }
         ]
+    },
+    // Ronde 4: CSS Categoriseren - Kleuren & Spacing
+    cssCategorize1: {
+        items: [
+            { code: 'color: red;', category: 'kleuren' },
+            { code: 'background-color: blue;', category: 'kleuren' },
+            { code: 'border-color: green;', category: 'kleuren' },
+            { code: 'margin: 10px;', category: 'spacing' },
+            { code: 'padding: 20px;', category: 'spacing' },
+            { code: 'width: 100%;', category: 'afmetingen' },
+            { code: 'height: 50px;', category: 'afmetingen' },
+            { code: 'font-size: 16px;', category: 'typografie' }
+        ],
+        categories: ['kleuren', 'spacing', 'afmetingen', 'typografie']
+    },
+    // Ronde 5: CSS Ordenen
+    cssOrder: {
+        items: [
+            { code: '.container {', order: 0 },
+            { code: '  display: flex;', order: 1 },
+            { code: '  justify-content: center;', order: 2 },
+            { code: '}', order: 3 }
+        ]
+    },
+    // Ronde 6: CSS Juist/Fout
+    cssTrueFalse: {
+        items: [
+            { code: 'color: red;', correct: true },
+            { code: 'color red;', correct: false }, // Fout: geen dubbele punt
+            { code: 'background-color: blue;', correct: true },
+            { code: 'margin: 10px;', correct: true },
+            { code: 'padding 20px;', correct: false } // Fout: geen dubbele punt
+        ]
+    },
+    // Ronde 7: JavaScript Categoriseren
+    jsCategorize1: {
+        items: [
+            { code: 'let x = 5;', category: 'variabelen' },
+            { code: 'const name = "test";', category: 'variabelen' },
+            { code: 'if (x > 5) {', category: 'condities' },
+            { code: 'for (let i = 0; i < 10; i++) {', category: 'loops' },
+            { code: 'function test() {', category: 'functies' },
+            { code: 'console.log(x);', category: 'output' },
+            { code: 'return x;', category: 'functies' },
+            { code: 'while (x < 10) {', category: 'loops' }
+        ],
+        categories: ['variabelen', 'condities', 'loops', 'functies', 'output']
+    },
+    // Ronde 8: JavaScript Ordenen
+    jsOrder: {
+        items: [
+            { code: 'function calculate() {', order: 0 },
+            { code: '  let result = 0;', order: 1 },
+            { code: '  result = result + 5;', order: 2 },
+            { code: '  return result;', order: 3 },
+            { code: '}', order: 4 }
+        ]
+    },
+    // Ronde 9: JavaScript Juist/Fout
+    jsTrueFalse: {
+        items: [
+            { code: 'let x = 5;', correct: true },
+            { code: 'let x = 5', correct: false }, // Fout: geen puntkomma
+            { code: 'const name = "test";', correct: true },
+            { code: 'if (x > 5) {', correct: true },
+            { code: 'if x > 5 {', correct: false } // Fout: geen haakjes
+        ]
+    },
+    // Ronde 10: HTML/CSS/JavaScript Identificeren
+    identifyLanguage: {
+        items: [
+            { code: '<div class="container">', category: 'html' },
+            { code: 'color: red;', category: 'css' },
+            { code: 'let x = 5;', category: 'javascript' },
+            { code: '<h1>Titel</h1>', category: 'html' },
+            { code: 'background-color: blue;', category: 'css' },
+            { code: 'function test() {', category: 'javascript' },
+            { code: '<img src="image.jpg">', category: 'html' },
+            { code: 'margin: 10px;', category: 'css' },
+            { code: 'console.log("Hello");', category: 'javascript' },
+            { code: '<button onclick="click()">Klik</button>', category: 'html' }
+        ],
+        categories: ['html', 'css', 'javascript']
     }
 };
 
@@ -324,29 +415,58 @@ const categoryLabels = {
     'formulieren': 'Formulieren',
     'structuur': 'Structuur',
     'content': 'Content',
-    'pagina-indeling': 'Pagina-indeling'
+    'pagina-indeling': 'Pagina-indeling',
+    'kleuren': 'Kleuren',
+    'spacing': 'Spacing',
+    'afmetingen': 'Afmetingen',
+    'layout': 'Layout',
+    'typografie': 'Typografie',
+    'variabelen': 'Variabelen',
+    'condities': 'Condities',
+    'loops': 'Loops',
+    'functies': 'Functies',
+    'output': 'Output',
+    'html': 'HTML',
+    'css': 'CSS',
+    'javascript': 'JavaScript',
+    'juist': '✓ Juist',
+    'fout': '✗ Fout'
 };
 
 const currentRoundType = computed(() => {
     if (currentRound.value === 1) {
-        return '🏷️ Categoriseer de code';
+        return '🏷️ Categoriseer de HTML code';
     } else if (currentRound.value === 2) {
         return '📝 Zet HTML elementen in volgorde';
+    } else if (currentRound.value === 3) {
+        return '❓ Welke HTML lijn is fout?';
+    } else if (currentRound.value === 4) {
+        return '🎨 Categoriseer CSS: Kleuren & Spacing';
+    } else if (currentRound.value === 5) {
+        return '📝 Zet CSS code in volgorde';
+    } else if (currentRound.value === 6) {
+        return '❓ Welke CSS lijn is fout?';
+    } else if (currentRound.value === 7) {
+        return '⚙️ Categoriseer JavaScript code';
+    } else if (currentRound.value === 8) {
+        return '📝 Zet JavaScript code in volgorde';
+    } else if (currentRound.value === 9) {
+        return '❓ Welke JavaScript lijn is fout?';
     } else {
-        return '❓ Welke lijn is fout?';
+        return '🔍 Is dit HTML, CSS of JavaScript?';
     }
 });
 
 const isOrderingRound = computed(() => {
-    return currentRound.value === 2;
+    return currentRound.value === 2 || currentRound.value === 5 || currentRound.value === 8;
 });
 
 const isCategorizingRound = computed(() => {
-    return currentRound.value === 1;
+    return currentRound.value === 1 || currentRound.value === 4 || currentRound.value === 7 || currentRound.value === 10;
 });
 
 const isTrueFalseRound = computed(() => {
-    return currentRound.value === 3;
+    return currentRound.value === 3 || currentRound.value === 6 || currentRound.value === 9;
 });
 
 const allSlotsFilled = computed(() => {
@@ -395,11 +515,31 @@ const nextRound = () => {
 
     setTimeout(() => {
         if (isCategorizingRound.value) {
-            setupCategorizingRound();
+            if (currentRound.value === 1) {
+                setupCategorizingRound();
+            } else if (currentRound.value === 4) {
+                setupCssCategorizingRound(1);
+            } else if (currentRound.value === 7) {
+                setupJsCategorizingRound();
+            } else if (currentRound.value === 10) {
+                setupIdentifyLanguageRound();
+            }
         } else if (isOrderingRound.value) {
-            setupOrderingRound();
+            if (currentRound.value === 2) {
+                setupOrderingRound();
+            } else if (currentRound.value === 5) {
+                setupCssOrderingRound();
+            } else if (currentRound.value === 8) {
+                setupJsOrderingRound();
+            }
         } else if (isTrueFalseRound.value) {
-            setupTrueFalseRound();
+            if (currentRound.value === 3) {
+                setupTrueFalseRound();
+            } else if (currentRound.value === 6) {
+                setupCssTrueFalseRound();
+            } else if (currentRound.value === 9) {
+                setupJsTrueFalseRound();
+            }
         }
         loadingRound.value = false;
         draggedItem.value = null;
@@ -443,6 +583,18 @@ const setupOrderingRound = () => {
     dropSlots.value = new Array(roundData.items.length).fill(null);
 };
 
+const setupCssOrderingRound = () => {
+    const roundData = codeDatabase.cssOrder;
+    
+    correctOrder.value = roundData.items.sort((a, b) => a.order - b.order).map(item => item.code);
+    shuffledItems.value = shuffleArray(roundData.items.map((item, index) => ({
+        ...item,
+        originalIndex: item.order
+    })));
+    
+    dropSlots.value = new Array(roundData.items.length).fill(null);
+};
+
 const setupTrueFalseRound = () => {
     const roundData = codeDatabase.trueFalse;
     
@@ -473,6 +625,151 @@ const setupTrueFalseRound = () => {
             items: []
         }
     ];
+};
+
+const setupCssCategorizingRound = (roundNumber) => {
+    const roundData = codeDatabase.cssCategorize1;
+    
+    correctCategories.value = {};
+    roundData.items.forEach(item => {
+        if (!correctCategories.value[item.category]) {
+            correctCategories.value[item.category] = [];
+        }
+        correctCategories.value[item.category].push(item.code);
+    });
+    
+    shuffledItems.value = shuffleArray(roundData.items.map(item => ({
+        ...item,
+        used: false
+    })));
+    
+    categories.value = roundData.categories.map(cat => ({
+        name: cat,
+        label: categoryLabels[cat] || cat,
+        items: []
+    }));
+};
+
+const setupCssTrueFalseRound = () => {
+    const roundData = codeDatabase.cssTrueFalse;
+    
+    correctCategories.value = {};
+    roundData.items.forEach(item => {
+        const categoryName = item.correct ? 'juist' : 'fout';
+        if (!correctCategories.value[categoryName]) {
+            correctCategories.value[categoryName] = [];
+        }
+        correctCategories.value[categoryName].push(item.code);
+    });
+    
+    shuffledItems.value = shuffleArray(roundData.items.map(item => ({
+        ...item,
+        used: false,
+        correctCategory: item.correct ? 'juist' : 'fout'
+    })));
+    
+    categories.value = [
+        {
+            name: 'juist',
+            label: '✓ Juist',
+            items: []
+        },
+        {
+            name: 'fout',
+            label: '✗ Fout',
+            items: []
+        }
+    ];
+};
+
+const setupJsCategorizingRound = () => {
+    const roundData = codeDatabase.jsCategorize1;
+    
+    correctCategories.value = {};
+    roundData.items.forEach(item => {
+        if (!correctCategories.value[item.category]) {
+            correctCategories.value[item.category] = [];
+        }
+        correctCategories.value[item.category].push(item.code);
+    });
+    
+    shuffledItems.value = shuffleArray(roundData.items.map(item => ({
+        ...item,
+        used: false
+    })));
+    
+    categories.value = roundData.categories.map(cat => ({
+        name: cat,
+        label: categoryLabels[cat] || cat,
+        items: []
+    }));
+};
+
+const setupJsOrderingRound = () => {
+    const roundData = codeDatabase.jsOrder;
+    
+    correctOrder.value = roundData.items.sort((a, b) => a.order - b.order).map(item => item.code);
+    shuffledItems.value = shuffleArray(roundData.items.map((item, index) => ({
+        ...item,
+        originalIndex: item.order
+    })));
+    
+    dropSlots.value = new Array(roundData.items.length).fill(null);
+};
+
+const setupJsTrueFalseRound = () => {
+    const roundData = codeDatabase.jsTrueFalse;
+    
+    correctCategories.value = {};
+    roundData.items.forEach(item => {
+        const categoryName = item.correct ? 'juist' : 'fout';
+        if (!correctCategories.value[categoryName]) {
+            correctCategories.value[categoryName] = [];
+        }
+        correctCategories.value[categoryName].push(item.code);
+    });
+    
+    shuffledItems.value = shuffleArray(roundData.items.map(item => ({
+        ...item,
+        used: false,
+        correctCategory: item.correct ? 'juist' : 'fout'
+    })));
+    
+    categories.value = [
+        {
+            name: 'juist',
+            label: '✓ Juist',
+            items: []
+        },
+        {
+            name: 'fout',
+            label: '✗ Fout',
+            items: []
+        }
+    ];
+};
+
+const setupIdentifyLanguageRound = () => {
+    const roundData = codeDatabase.identifyLanguage;
+    
+    correctCategories.value = {};
+    roundData.items.forEach(item => {
+        if (!correctCategories.value[item.category]) {
+            correctCategories.value[item.category] = [];
+        }
+        correctCategories.value[item.category].push(item.code);
+    });
+    
+    shuffledItems.value = shuffleArray(roundData.items.map(item => ({
+        ...item,
+        used: false
+    })));
+    
+    categories.value = roundData.categories.map(cat => ({
+        name: cat,
+        label: categoryLabels[cat] || cat,
+        items: []
+    }));
 };
 
 const selectItem = (item, index) => {
@@ -517,6 +814,30 @@ const onDrop = (categoryName) => {
     
     if (category) {
         // Voor true/false ronde: gebruik correctCategory
+        const isCorrect = item.correctCategory ? item.correctCategory === categoryName : (item.category === categoryName);
+        
+        category.items.push({
+            code: item.code,
+            category: item.correctCategory || item.category,
+            correct: isCorrect
+        });
+        item.used = true;
+    }
+    
+    shuffledItems.value.splice(draggedItemIndex.value, 1);
+    draggedItem.value = null;
+    draggedItemIndex.value = null;
+};
+
+const onDropCategory = (categoryName) => {
+    dragOverCategory.value = null;
+    if (!draggedItem.value || draggedItem.value.used || showingResult.value) return;
+    
+    const item = shuffledItems.value[draggedItemIndex.value];
+    const category = categories.value.find(cat => cat.name === categoryName);
+    
+    if (category) {
+        // Voor categorizing rondes: gebruik category property
         const isCorrect = item.correctCategory ? item.correctCategory === categoryName : (item.category === categoryName);
         
         category.items.push({
