@@ -158,9 +158,14 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <a :href="`/score/hexa-guess/${score}`" class="btn btn-primary">
-                        Volgende Challenge
-                    </a>
+                    <form method="POST" action="/score/hexa-guess">
+                        <input type="hidden" name="score" :value="score">
+                        <input type="hidden" name="_token" :value="csrfToken">
+
+                        <button type="submit" class="btn btn-primary">
+                            Volgende Challenge
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -182,6 +187,7 @@ const resultClass = ref('');
 const loadingColor = ref(false);
 const lastChoiceWasCorrect = ref(false);
 const tipOpen = ref(false);
+const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
 
 // Genereer een willekeurige hex kleur
 const generateColor = () => {

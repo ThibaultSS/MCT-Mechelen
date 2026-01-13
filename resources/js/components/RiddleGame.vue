@@ -83,9 +83,14 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <a :href="`/score/riddle/${score}`" class="btn btn-primary">
-                        Terug naar Home
-                    </a>
+                    <form method="POST" action="/score/riddle">
+                        <input type="hidden" name="score" :value="score">
+                        <input type="hidden" name="_token" :value="csrfToken">
+
+                        <button type="submit" class="btn btn-primary">
+                            Volgende Challenge
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -106,6 +111,7 @@ const resultMessage = ref('');
 const resultClass = ref('');
 const selectedAnswerCorrect = ref(false);
 const correctAnswerText = ref('');
+const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
 
 const riddles = [
     {

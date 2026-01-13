@@ -9,8 +9,9 @@ use App\Models\Heaguess;
 
 class CalculateHexaScore extends Controller
 {
-    public function calculateScore($score)
+    public function calculateScore(Request $request)
     {
+        $score = (int) $request->input('score');
         Heaguess::create([
             'student_id' => session('student_id'),
             'time' => 0,
@@ -18,9 +19,7 @@ class CalculateHexaScore extends Controller
             'total_score' => $score,
         ]);
                 
-        Student::where('id', session('student_id'))->update([
-            'total_score' => Student::find(session('student_id'))->total_score + $score,
-        ]);
+        Student::where('id', session('student_id'))->increment('total_score', $score);
         return view("game.code-quest");
         
     }

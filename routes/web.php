@@ -13,11 +13,11 @@ Route::get('/', function () {
     return view('login');
 });
 
-Route::get('/score/comet-typing/{score}', [CalculateCometScore::class, 'calculateScore']);
-Route::get('/score/ai-or-not/{score}', [CalculateAiScore::class, 'calculateScore']);
-Route::get('/score/hexa-guess/{score}', [CalculateHexaScore::class, 'calculateScore']);
-Route::get('/score/code-quest/{score}', [CalculateCodeScore::class, 'calculateScore']);
-Route::get('/score/riddle/{score}', [CalculateRiddleScore::class, 'calculateScore']);
+Route::post('/score/comet-typing', [CalculateCometScore::class, 'calculateScore']);
+Route::post('/score/ai-or-not', [CalculateAiScore::class, 'calculateScore']);
+Route::post('/score/hexa-guess', [CalculateHexaScore::class, 'calculateScore']);
+Route::post('/score/code-quest', [CalculateCodeScore::class, 'calculateScore']);
+Route::post('/score/riddle', [CalculateRiddleScore::class, 'calculateScore']);
 Route::get('/highscores', [BubbleController::class, 'showHighscore']);
 Route::get('/bubblesort', [BubbleController::class, 'bubbleSorter']);
 Route::post('/loginRun', [LoginController::class, 'loginRun']);
