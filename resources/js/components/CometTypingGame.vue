@@ -129,12 +129,9 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ TOTAL_WORDS }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <button
-                        class="btn btn-primary"
-                        @click="goToNextChallenge"
-                    >
+                    <a :href="`/score/comet-typing/${score}`" class="btn btn-primary">
                         Volgende Challenge
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -155,25 +152,18 @@ const FAST_COMET_FIXED_SPEED = 4.5; // Vaste snelheid voor snelle kometen
 const MULTIPLE_COMET_CHANCE = 0.45; // 45% kans op meerdere kometen tegelijk
 const MAX_SIMULTANEOUS_COMETS = 2; // Maximaal 2 kometen tegelijk
 
-// Eenvoudige woorden
+// Eenvoudige woorden (30)
 const EASY_WORDS = [
-    'appel', 'banaan', 'citroen', 'druif', 'eik', 'fiets', 'gitaar', 'huis',
-    'ijs', 'jas', 'kast', 'lamp', 'muziek', 'noot', 'olifant', 'piano',
-    'quiz', 'raket', 'ster', 'tafel', 'ui', 'vogel', 'water', 'xylofoon',
-    'yoga', 'zon', 'auto', 'boek', 'code', 'dans', 'eten', 'feest',
-    'goud', 'hond', 'kaas', 'liefde', 'maan', 'nacht', 'oog', 'paard',
-    'regen', 'sneeuw', 'tijd', 'uur', 'vriend', 'winter', 'zomer', 'lente'
+    'appel', 'MCT', 'steen', 'vis', 'honderd', 'typen', 'tempel', 'krab',
+    'woord', 'nagel', 'check', 'boom', 'huis', 'fiets', 'water', 'tafel',
+    'stoel', 'brood', 'zon', 'maan', 'hand', 'boek', 'pen', 'kaart',
+    'klok', 'school', 'raam', 'vloer', 'licht', 'straat'
 ];
 
-// Moeilijkere woorden
+// Moeilijkere woorden (10)
 const HARD_WORDS = [
-    'computer', 'elektronisch', 'programmeur', 'ontwikkelaar', 'applicatie',
-    'technologie', 'innovatie', 'processor', 'besturingssysteem', 'software',
-    'hardware', 'netwerk', 'database', 'server', 'framework', 'interface',
-    'algoritme', 'programmeren', 'codeer', 'syntaxis', 'variabele', 'functie',
-    'parameter', 'iteratie', 'recursie', 'abstractie', 'encapsulatie', 'polymorfisme',
-    'gebeurtenis', 'callback', 'asynchroon', 'promise', 'component', 'modulariteit',
-    'optimalisatie', 'debuggen', 'testen', 'validatie', 'authenticatie', 'autorisatie'
+    'embrio', 'nagelbijter', 'Unity', 'patient', 'kerstkaartjes',
+    'serrien', 'verantwoord', 'onomkeerbaar', 'communicatie', 'karakters'
 ];
 
 // State
@@ -417,11 +407,6 @@ const handleStartGame = () => {
 const restartGame = () => {
     gameStarted.value = false;
     endGame();
-};
-
-const goToNextChallenge = () => {
-    // Navigeer naar de volgende challenge (AI OR NOT)
-    window.location.href = '/score/comet-typing/' + score.value;
 };
 
 const cleanup = () => {

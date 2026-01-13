@@ -67,7 +67,7 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <a :href="`/score/ai-or-not/${score}`" class="btn-primary">
+                    <a :href="`/score/ai-or-not/${score}`" class="btn btn-primary">
                         Volgende Challenge
                     </a>
                 </div>
