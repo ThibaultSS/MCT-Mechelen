@@ -56,11 +56,6 @@
                 </div>
 
                 <div class="drop-zones-area">
-                    <div class="drop-zones-label">
-                        <span v-if="currentRound === 2">Juiste volgorde: &lt;header&gt; → &lt;nav&gt; → &lt;main&gt; → &lt;section&gt; → &lt;footer&gt;</span>
-                        <span v-else-if="currentRound === 5">Juiste volgorde: CSS selector → CSS properties → Sluitende accolade</span>
-                        <span v-else-if="currentRound === 8">Juiste volgorde: Functie declaratie → Variabelen → Logica → Return → Sluitende accolade</span>
-                    </div>
                     <div class="drop-zones-list">
                         <div
                             v-for="(slot, index) in dropSlots"
@@ -273,7 +268,7 @@ const gameEnded = ref(false);
 const currentRound = ref(0);
 const totalRounds = ref(10);
 const score = ref(0);
-const maxScore = ref(50);
+const maxScore = ref(100);
 const showingResult = ref(false);
 const resultMessage = ref('');
 const resultClass = ref('');
@@ -435,25 +430,25 @@ const categoryLabels = {
 
 const currentRoundType = computed(() => {
     if (currentRound.value === 1) {
-        return '🏷️ Categoriseer de HTML code';
+        return 'Categoriseer de HTML code';
     } else if (currentRound.value === 2) {
-        return '📝 Zet HTML elementen in volgorde';
+        return 'Zet HTML elementen in volgorde';
     } else if (currentRound.value === 3) {
-        return '❓ Welke HTML lijn is fout?';
+        return 'Welke HTML lijn is fout?';
     } else if (currentRound.value === 4) {
-        return '🎨 Categoriseer CSS: Kleuren & Spacing';
+        return 'Categoriseer CSS: Kleuren & Spacing';
     } else if (currentRound.value === 5) {
-        return '📝 Zet CSS code in volgorde';
+        return 'Zet CSS code in volgorde';
     } else if (currentRound.value === 6) {
-        return '❓ Welke CSS lijn is fout?';
+        return 'Welke CSS lijn is fout?';
     } else if (currentRound.value === 7) {
-        return '⚙️ Categoriseer JavaScript code';
+        return 'Categoriseer JavaScript code';
     } else if (currentRound.value === 8) {
-        return '📝 Zet JavaScript code in volgorde';
+        return 'Zet JavaScript code in volgorde';
     } else if (currentRound.value === 9) {
-        return '❓ Welke JavaScript lijn is fout?';
+        return 'Welke JavaScript lijn is fout?';
     } else {
-        return '🔍 Is dit HTML, CSS of JavaScript?';
+        return 'Is dit HTML, CSS of JavaScript?';
     }
 });
 
@@ -941,7 +936,8 @@ const checkCategorizing = () => {
         });
     });
     
-    roundScore.value = correct;
+    // Bereken score proportioneel: (correct / total) * 10
+    roundScore.value = Math.round((correct / total) * 10);
     score.value += roundScore.value;
     
     if (correct === total) {
@@ -963,7 +959,8 @@ const checkOrdering = () => {
     hasChecked.value = true;
     const correct = dropSlots.value.filter(slot => slot && slot.correct).length;
     const total = dropSlots.value.length;
-    roundScore.value = correct;
+    // Bereken score proportioneel: (correct / total) * 10
+    roundScore.value = Math.round((correct / total) * 10);
     score.value += roundScore.value;
     
     if (correct === total) {
@@ -993,7 +990,8 @@ const checkTrueFalse = () => {
         });
     });
     
-    roundScore.value = correct;
+    // Bereken score proportioneel: (correct / total) * 10
+    roundScore.value = Math.round((correct / total) * 10);
     score.value += roundScore.value;
     
     if (correct === total) {
