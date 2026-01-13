@@ -24,7 +24,7 @@ let intervalId = null;
 
 const fetchScores = async () => {
   try {
-    const response = await fetch('https://mct-mechelen.test/bubblesort');
+    const response = await fetch('https://studentgames.thibault.soumoy.kdgmt.be/bubblesort');
     if (!response.ok) throw new Error('Network response was not ok');
     scores.value = await response.json();
   } catch (error) {

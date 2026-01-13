@@ -5,28 +5,28 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student;
+use Illuminate\Validation\Rule;
 
 class LoginController extends Controller
 {
-    public function loginRun(Request $request)
-    {
-        $username = $request->input('username');
-        $email = $request->input('email');
+public function loginRun(Request $request)
+{
+    $request->validate([
+        'email' => ['required', 'email'],
+        'username' => [
+            'required',
+            Rule::unique('students', 'username')
+                ->ignore($request->email, 'email'),
+        ],
+    ]);
 
-        $student = Student::firstOrCreate(
-            ['email' => $email],
-            ['username' => $username]
-        );
+    $student = Student::updateOrCreate(
+        ['email' => $request->email],
+        ['username' => $request->username]
+    );
 
-        if ($student) {
-            Student::where('email', $email)->update(['username' => $username]);
-        } else {
-            Student::create([
-                'username' => $username,
-                'email' => $email,
-            ]);
-        }
-        session(['student_id' => $student->id]);
-        return view("welcome");
-    }
+    session(['student_id' => $student->id]);
+
+    return view('welcome');
+}
 }
