@@ -38,6 +38,7 @@
                         :key="index"
                         class="answer-btn"
                         :class="{
+                            [`color-${index}`]: true,
                             'selected': selectedAnswer === index,
                             'correct': showingResult && answer.correct,
                             'incorrect': showingResult && selectedAnswer === index && !answer.correct,
@@ -46,7 +47,7 @@
                         @click="selectAnswer(index)"
                         :disabled="showingResult"
                     >
-                        <span class="answer-letter">{{ String.fromCharCode(65 + index) }}</span>
+                        <span class="answer-icon" v-html="getIcon(index)"></span>
                         <span class="answer-text">{{ answer.text }}</span>
                     </button>
                 </div>
@@ -258,6 +259,16 @@ const nextRound = () => {
 const endGame = () => {
     gameEnded.value = true;
 };
+
+const getIcon = (index) => {
+    const icons = [
+        '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="30" height="30" stroke="currentColor" stroke-width="3" fill="none"/></svg>', // Vierkant
+        '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15" stroke="currentColor" stroke-width="3" fill="none"/></svg>', // Cirkel
+        '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L35 35 L5 35 Z" stroke="currentColor" stroke-width="3" fill="none"/></svg>', // Driehoek
+        '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L24 15 L35 15 L26 22 L30 32 L20 25 L10 32 L14 22 L5 15 L16 15 Z" stroke="currentColor" stroke-width="2" fill="currentColor"/></svg>' // Ster
+    ];
+    return icons[index] || icons[0];
+};
 </script>
 
 <style scoped>
@@ -419,90 +430,113 @@ const endGame = () => {
 .answers-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    gap: 20px;
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
 }
 
 .answer-btn {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 20px 25px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 15px;
+    gap: 20px;
+    padding: 25px 30px;
+    border: none;
+    border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s;
-    backdrop-filter: blur(10px);
-    font-size: 18px;
+    font-size: 20px;
+    font-weight: bold;
     color: white;
     text-align: left;
     position: relative;
-    min-height: 70px;
+    min-height: 90px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Kahoot kleuren */
+.answer-btn.color-0 {
+    background: #DB5246; /* Rood */
+}
+
+.answer-btn.color-1 {
+    background: #1EA1F1; /* Blauw */
+}
+
+.answer-btn.color-2 {
+    background: #FCC600; /* Geel */
+    color: #07103E;
+}
+
+.answer-btn.color-3 {
+    background: #5AC467; /* Groen */
 }
 
 .answer-btn:hover:not(.disabled) {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    filter: brightness(1.1);
 }
 
 .answer-btn.selected {
-    background: rgba(252, 198, 0, 0.3);
-    border-color: #FCC600;
-    box-shadow: 0 6px 25px rgba(252, 198, 0, 0.5);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+    filter: brightness(1.15);
 }
 
 .answer-btn.correct {
-    background: rgba(0, 255, 0, 0.3);
-    border-color: #00ff00;
+    background: #5AC467 !important;
     animation: correctPulse 0.5s;
+    box-shadow: 0 0 30px rgba(90, 196, 103, 0.6);
 }
 
 .answer-btn.incorrect {
-    background: rgba(255, 0, 0, 0.3);
-    border-color: #ff0000;
+    background: #DB5246 !important;
     animation: incorrectShake 0.5s;
+    box-shadow: 0 0 30px rgba(219, 82, 70, 0.6);
 }
 
 .answer-btn.disabled {
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
-.answer-letter {
+.answer-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    font-weight: bold;
-    font-size: 24px;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
     flex-shrink: 0;
+    color: white;
 }
 
-.answer-btn.selected .answer-letter {
-    background: #FCC600;
+.answer-btn.color-2 .answer-icon {
+    background: rgba(7, 16, 62, 0.25);
     color: #07103E;
 }
 
-.answer-btn.correct .answer-letter {
-    background: #00ff00;
-    color: #07103E;
+.answer-btn.selected .answer-icon {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
 }
 
-.answer-btn.incorrect .answer-letter {
-    background: #ff0000;
+.answer-btn.correct .answer-icon {
+    background: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.answer-btn.incorrect .answer-icon {
+    background: rgba(255, 255, 255, 0.4);
     color: white;
 }
 
 .answer-text {
     flex: 1;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.4;
 }
 
 /* Result Pop-up */
