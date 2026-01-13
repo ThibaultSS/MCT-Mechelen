@@ -129,12 +129,9 @@
                     Je hebt <strong>{{ score }}</strong> van <strong>{{ TOTAL_WORDS }}</strong> juist!
                 </p>
                 <div class="modal-actions">
-                    <button
-                        class="btn btn-primary"
-                        @click="goToNextChallenge"
-                    >
+                    <a :href="`/score/comet-typing/${score}`" class="btn btn-primary">
                         Volgende Challenge
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -417,11 +414,6 @@ const handleStartGame = () => {
 const restartGame = () => {
     gameStarted.value = false;
     endGame();
-};
-
-const goToNextChallenge = () => {
-    // Navigeer naar de volgende challenge (AI OR NOT)
-    window.location.href = '/score/comet-typing/' + score.value;
 };
 
 const cleanup = () => {
