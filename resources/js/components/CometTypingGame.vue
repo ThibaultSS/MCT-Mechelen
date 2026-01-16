@@ -5,9 +5,17 @@
             <div class="start-content">
                 <h1 class="start-title">Kometen Typen</h1>
                 <p class="start-description">Typ de woorden voordat ze de grond raken!</p>
-                <button class="btn-start" @click="handleStartGame">
+                <button class="btn-start" @click="handleStartGame" :disabled="countdown > 0">
                     START
                 </button>
+            </div>
+        </div>
+
+        <!-- Countdown Overlay -->
+        <div v-if="countdown > 0" class="countdown-overlay">
+            <div class="countdown-content">
+                <div class="countdown-number">{{ countdown }}</div>
+                <div class="countdown-text">Klaar?</div>
             </div>
         </div>
 
@@ -187,6 +195,7 @@ const speed = ref(1.8); // Start snelheid (pixels per frame bij originele 30fps,
 const spawnInterval = ref(INITIAL_SPAWN_INTERVAL);
 const currentDifficulty = ref(0); // Huidige moeilijkheidsniveau
 const lastFrameTime = ref(0); // Laatste frame tijd voor delta time berekening
+const countdown = ref(0); // Countdown timer (0 = geen countdown)
 
 // Computed
 const remainingWords = computed(() => TOTAL_WORDS - wordsSeen.value);
@@ -208,6 +217,7 @@ const getWordForDifficulty = () => {
 let spawnTimer = null;
 let difficultyTimer = null;
 let animationTimer = null;
+let countdownTimer = null;
 
 // ID counters
 let cometIdCounter = 0;
@@ -376,6 +386,10 @@ const cleanupTimers = () => {
         clearTimeout(animationTimer);
         animationTimer = null;
     }
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+    }
 };
 
 const endGame = () => {
@@ -400,9 +414,12 @@ const startGame = () => {
     explosionIdCounter = 0;
     lastCometWasFast = false; // Reset snelle komeet tracking
     lastFrameTime.value = performance.now(); // Reset frame time voor delta time
+    countdown.value = 0; // Reset countdown
 
-    // Clear any existing timers
-    cleanupTimers();
+    // Clear any existing timers (behalve countdown timer die al gestopt is)
+    if (spawnTimer) clearInterval(spawnTimer);
+    if (difficultyTimer) clearInterval(difficultyTimer);
+    if (animationTimer) clearTimeout(animationTimer);
 
     // Start timers
     spawnTimer = setInterval(createComet, spawnInterval.value);
@@ -413,8 +430,21 @@ const startGame = () => {
 };
 
 const handleStartGame = () => {
+    if (countdown.value > 0) return; // Voorkom dubbele starts
+    
+    // Start countdown
+    countdown.value = 5;
     gameStarted.value = true;
-    startGame();
+    
+    countdownTimer = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+            countdown.value = 0;
+            startGame();
+        }
+    }, 1000);
 };
 
 onUnmounted(() => {
@@ -766,6 +796,75 @@ onUnmounted(() => {
 
 .btn-start:active {
     transform: translateY(-2px) scale(1.02);
+}
+
+.btn-start:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Countdown Overlay */
+.countdown-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(7, 16, 62, 0.95);
+    z-index: 200;
+    backdrop-filter: blur(10px);
+}
+
+.countdown-content {
+    text-align: center;
+    animation: countdownPulse 0.5s ease-out;
+}
+
+.countdown-number {
+    font-size: 12rem;
+    font-weight: 700;
+    color: #FCC600;
+    text-shadow: 
+        0 0 30px rgba(252, 198, 0, 0.8),
+        0 0 60px rgba(251, 110, 0, 0.6),
+        0 0 90px rgba(252, 198, 0, 0.4);
+    line-height: 1;
+    margin-bottom: 1rem;
+    animation: countdownScale 1s ease-out;
+}
+
+.countdown-text {
+    font-size: 2rem;
+    color: #147ED8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+@keyframes countdownPulse {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes countdownScale {
+    0% {
+        transform: scale(1.5);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 @keyframes pulse {
