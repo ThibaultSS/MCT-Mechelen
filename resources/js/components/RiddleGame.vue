@@ -115,18 +115,18 @@ const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content
 
 const riddles = [
     {
-        question: 'Ik vergelijk twee namen.\nDe eerste begint met K en eindigt met G.\nDe tweede start met T en eindigt met M.\nWat ertussen zit, maakt het verschil duidelijk:\nde eerste wint altijd van de tweede.',
+        question: 'Ik ben een school waar creativiteit en technologie samenkomen.\nMijn naam begint met K en eindigt met G.\nIk bied opleidingen aan in design, media en IT.\nStudenten leren hier door te doen en te experimenteren.\nWelke school ben ik?',
         answers: [
-            { text: 'KDG is beter dan TSM', correct: true },
-            { text: 'TSM is beter dan KDG', correct: false },
-            { text: 'KDG en TSM zijn gelijk', correct: false },
-            { text: 'Geen van beide', correct: false }
+            { text: 'KDG', correct: true },
+            { text: 'TSM', correct: false },
+            { text: 'KU Leuven', correct: false },
+            { text: 'UAntwerpen', correct: false }
         ],
         firstRoundAnswers: [
-            { text: 'KDG is beter dan TSM', correct: true },
-            { text: 'KDG is beter dan TSM', correct: true },
-            { text: 'KDG is beter dan TSM', correct: true },
-            { text: 'KDG is beter dan TSM', correct: true }
+            { text: 'KDG on top', correct: true },
+            { text: 'KDG on top', correct: true },
+            { text: 'KDG on top', correct: true },
+            { text: 'KDG on top', correct: true }
         ]
     },
     {
