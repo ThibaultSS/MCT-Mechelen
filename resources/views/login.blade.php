@@ -8,6 +8,16 @@
 </head>
 <body style="margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #07103E 0%, #147ED8 100%); font-family: Arial, sans-serif;">
     <div style="width: 100%; max-width: 500px; padding: 2rem; display: flex; flex-direction: column; align-items: center;">
+        <!-- Mobiele melding -->
+        <div class="mobile-warning">
+            <div class="mobile-warning-content">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+                </svg>
+                <span>Dit spel is geoptimaliseerd voor desktop/PC. Gebruik een computer voor de beste ervaring.</span>
+            </div>
+        </div>
+        
         <div style="text-align: center; margin-bottom: 3rem; width: 100%; display: flex; justify-content: center;">
             <img src="{{ asset('images/Logo_Students.png') }}" alt="Logo" class="animated-logo" style="max-width: 400px; height: auto; display: block; margin: 0 auto;">
         </div>
@@ -92,9 +102,49 @@
             }
         }
 
+        /* Mobiele waarschuwing */
+        .mobile-warning {
+            display: none;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .mobile-warning-content {
+            background: rgba(251, 110, 0, 0.95);
+            color: white;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(252, 198, 0, 0.5);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .mobile-warning-content svg {
+            flex-shrink: 0;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @media (max-width: 768px) {
             .animated-logo {
                 max-width: 280px !important;
+            }
+            
+            .mobile-warning {
+                display: block;
             }
         }
     </style>
