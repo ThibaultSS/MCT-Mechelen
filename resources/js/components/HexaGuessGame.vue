@@ -29,7 +29,7 @@
             
             <!-- Round Type Indicator -->
             <div v-if="currentRound >= 8" class="round-type-indicator">
-                <span class="round-type">REGENBOOG ROUND</span>
+                <span class="round-type">RAINBOW ROUND</span>
             </div>
             
             <!-- Tip Container (rechtsonder) -->

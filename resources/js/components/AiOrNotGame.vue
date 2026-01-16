@@ -16,7 +16,10 @@
             <div class="game-header">
                 <div class="stat">
                     <span class="stat-label">Ronde</span>
-                    <span class="stat-value">{{ currentRound }}/{{ totalRounds }}</span>
+                    <span class="stat-value">{{ currentRound }}/{{ TOTAL_ROUNDS }}</span>
+                </div>
+                <div v-if="!showingResult && !loadingImages" class="instruction-text-header">
+                    Klik op wat AI is
                 </div>
                 <div class="stat">
                     <span class="stat-label">Score</span>
@@ -64,7 +67,7 @@
             <div class="modal-content">
                 <h2 class="modal-title">Challenge voltooid!</h2>
                 <p class="modal-text">
-                    Je hebt <strong>{{ score }}</strong> van <strong>{{ totalRounds }}</strong> juist!
+                    Je hebt <strong>{{ score }}</strong> van <strong>{{ TOTAL_ROUNDS }}</strong> juist!
                 </p>
                 <div class="modal-actions">
                     <form method="POST" action="/score/ai-or-not">
@@ -82,14 +85,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 
+// Constants
+const TOTAL_ROUNDS = 10;
+const RESULT_DISPLAY_TIME = 2000; // 2 seconden
+
+// State
 const gameStarted = ref(false);
 const gameEnded = ref(false);
 const currentRound = ref(0);
-const totalRounds = ref(10);
 const score = ref(0);
-const currentImages = ref([]); // Array met 2 afbeeldingen [AI_1, Not_1]
+const currentImages = ref([]);
 const showingResult = ref(false);
 const resultMessage = ref('');
 const resultClass = ref('');
@@ -97,6 +104,9 @@ const lastSelectedImage = ref(null);
 const lastChoiceWasCorrect = ref(false);
 const loadingImages = ref(false);
 const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+// Timers
+let resultTimer = null;
 
 // Helper functie om pad van AI afbeelding te krijgen
 const getAIImagePath = (number) => {
@@ -109,18 +119,29 @@ const getNotAIImagePath = (number) => {
     return `/images/AI_Notai/Not_${number}.jpg`;
 };
 
+const cleanupTimers = () => {
+    if (resultTimer) {
+        clearTimeout(resultTimer);
+        resultTimer = null;
+    }
+};
+
 const startGame = () => {
+    cleanupTimers();
     gameStarted.value = true;
     gameEnded.value = false;
     currentRound.value = 0;
     score.value = 0;
     showingResult.value = false;
     currentImages.value = [];
+    lastSelectedImage.value = null;
     nextRound();
 };
 
 const nextRound = () => {
-    if (currentRound.value >= totalRounds.value) {
+    cleanupTimers();
+    
+    if (currentRound.value >= TOTAL_ROUNDS) {
         endGame();
         return;
     }
@@ -131,28 +152,23 @@ const nextRound = () => {
     lastSelectedImage.value = null;
     currentImages.value = [];
     
-    // Gebruik het ronde nummer direct als paar nummer (1-10)
     const pairNumber = currentRound.value;
     
-    // Maak de twee afbeeldingen
     const aiImage = {
         path: getAIImagePath(pairNumber),
         isAI: true,
-        name: `AI_${pairNumber}`,
-        pairNumber: pairNumber
+        name: `AI_${pairNumber}`
     };
     
     const notAIImage = {
         path: getNotAIImagePath(pairNumber),
         isAI: false,
-        name: `Not_${pairNumber}`,
-        pairNumber: pairNumber
+        name: `Not_${pairNumber}`
     };
     
-    // Zet ze in willekeurige volgorde (links/rechts)
+    // Willekeurige volgorde (links/rechts)
     const imagesToLoad = Math.random() < 0.5 ? [aiImage, notAIImage] : [notAIImage, aiImage];
     
-    // Laad beide afbeeldingen voordat we ze tonen
     loadImages(imagesToLoad);
 };
 
@@ -187,7 +203,6 @@ const makeChoice = (selectedImageIsAI) => {
     
     const isCorrect = selectedImageIsAI === true;
     
-    // Zoek de geselecteerde afbeelding voor visuele feedback
     lastSelectedImage.value = currentImages.value.find(img => img.isAI === selectedImageIsAI);
     lastChoiceWasCorrect.value = isCorrect;
     
@@ -202,27 +217,20 @@ const makeChoice = (selectedImageIsAI) => {
     
     showingResult.value = true;
     
-    // Wacht 2 seconden voordat we naar de volgende ronde gaan
-    setTimeout(() => {
+    resultTimer = setTimeout(() => {
         nextRound();
-    }, 2000);
+    }, RESULT_DISPLAY_TIME);
 };
 
 const endGame = () => {
+    cleanupTimers();
     gameEnded.value = true;
     gameStarted.value = false;
 };
 
-const restartGame = () => {
-    gameStarted.value = false;
-    gameEnded.value = false;
-    currentRound.value = 0;
-    score.value = 0;
-    showingResult.value = false;
-    currentImages.value = [];
-    lastSelectedImage.value = null;
-    loadingImages.value = false;
-};
+onUnmounted(() => {
+    cleanupTimers();
+});
 </script>
 
 <style scoped>
@@ -271,12 +279,11 @@ const restartGame = () => {
     font-weight: bold;
     color: #07103E;
     background: linear-gradient(135deg, #FB6E00 0%, #FCC600 100%);
-    border: none;
+    border: 4px solid rgba(255, 255, 255, 0.3);
     border-radius: 30px;
     cursor: pointer;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     transition: transform 0.2s, box-shadow 0.2s;
-    border: 4px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-start:hover {
@@ -332,8 +339,9 @@ const restartGame = () => {
 .game-header {
     display: flex;
     justify-content: space-around;
+    align-items: center;
     margin-bottom: 30px;
-    gap: 40px;
+    gap: 20px;
 }
 
 .stat {
@@ -357,6 +365,28 @@ const restartGame = () => {
     font-size: 32px;
     font-weight: bold;
     color: #FCC600;
+}
+
+.instruction-text-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #FCC600;
+    text-align: center;
+    text-shadow: 
+        0 2px 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(252, 198, 0, 0.3);
+    padding: 15px 40px;
+    background: rgba(7, 16, 62, 0.7);
+    border-radius: 15px;
+    border: 2px solid rgba(252, 198, 0, 0.3);
+    backdrop-filter: blur(5px);
+    white-space: nowrap;
+    animation: instructionPulse 2s ease-in-out infinite;
+    flex: 1;
+    max-width: 400px;
 }
 
 .images-wrapper {
@@ -427,6 +457,17 @@ const restartGame = () => {
     filter: brightness(1);
 }
 
+@keyframes instructionPulse {
+    0%, 100% {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+}
+
 .ai-label {
     position: absolute;
     top: 20px;
@@ -484,49 +525,6 @@ const restartGame = () => {
         transform: scale(1);
         opacity: 1;
     }
-}
-
-.controls {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-bottom: 30px;
-}
-
-.btn-choice {
-    padding: 25px 80px;
-    font-size: 36px;
-    font-weight: bold;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    border: 4px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-choice:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-ai {
-    background: linear-gradient(135deg, #FB6E00 0%, #FCC600 100%);
-    color: #07103E;
-}
-
-.btn-not {
-    background: linear-gradient(135deg, #147ED8 0%, #07103E 100%);
-    color: white;
-}
-
-.btn-choice:hover:not(:disabled) {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
-}
-
-.btn-choice:active:not(:disabled) {
-    transform: translateY(-2px);
 }
 
 /* Modal */
@@ -629,6 +627,13 @@ const restartGame = () => {
         font-size: 24px;
     }
 
+    .instruction-text-header {
+        font-size: 16px;
+        padding: 10px 15px;
+        white-space: normal;
+        max-width: 200px;
+    }
+
     .images-wrapper {
         flex-direction: column;
         gap: 20px;
@@ -640,6 +645,7 @@ const restartGame = () => {
         max-width: 90%;
         padding: 15px;
     }
+
 
     .game-image {
         max-height: 300px;
@@ -655,19 +661,6 @@ const restartGame = () => {
         padding: 8px 15px;
         top: 10px;
         right: 10px;
-    }
-
-    .game-over-title {
-        font-size: 36px;
-    }
-
-    .final-stat-value {
-        font-size: 32px;
-    }
-
-    .btn-primary, .btn-secondary {
-        font-size: 20px;
-        padding: 15px 35px;
     }
 }
 </style>
