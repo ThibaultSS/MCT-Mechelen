@@ -43,7 +43,7 @@
             <!-- Komeet SVG -->
             <svg 
                 class="comet-svg" 
-                :style="{ width: (comet.size || 120) + 'px', height: (comet.size || 120) + 'px' }"
+                :style="{ width: comet.size + 'px', height: comet.size + 'px' }"
                 viewBox="0 0 100 100" 
                 xmlns="http://www.w3.org/2000/svg"
             >
@@ -113,7 +113,6 @@
                 class="game-input"
                 placeholder="Typ het woord..."
                 @input="checkInputMatch"
-                @keydown.enter="handleInput"
                 autofocus
             />
         </div>
@@ -144,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 
 // Constants
 const TOTAL_WORDS = 50;
@@ -153,9 +152,12 @@ const INITIAL_SPAWN_INTERVAL = 2200; // milliseconds
 const MIN_SPAWN_INTERVAL = 700; // milliseconds
 const MIN_SPAWN_MARGIN = 150; // Minimale afstand van de rand
 const FAST_COMET_CHANCE = 0.18; // 18% kans op een snelle komeet
-const FAST_COMET_FIXED_SPEED = 4.5; // Vaste snelheid voor snelle kometen
+const FAST_COMET_SPEED_PPS = 135; // Snelle kometen: 135 pixels per seconde
 const MULTIPLE_COMET_CHANCE = 0.45; // 45% kans op meerdere kometen tegelijk
-const MAX_SIMULTANEOUS_COMETS = 2; // Maximaal 2 kometen tegelijk
+const TARGET_FPS = 60;
+const FRAME_INTERVAL = 1000 / TARGET_FPS; // ~16.67ms voor 60 fps
+const MAX_DELTA_TIME = 100; // Max delta time in ms om spikes te voorkomen
+const MIN_DELTA_TIME = 1; // Min delta time om te voorkomen dat het te snel gaat
 const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
 
 // Eenvoudige woorden (30)
@@ -181,9 +183,10 @@ const wordsSeen = ref(0); // Totaal aantal woorden dat verschenen is
 const score = ref(0);
 const missed = ref(0); // Kometen die de bodem raakten
 const gameEnded = ref(false);
-const speed = ref(1.8); // Start snelheid
+const speed = ref(1.8); // Start snelheid (pixels per frame bij originele 30fps, wordt omgezet naar PPS)
 const spawnInterval = ref(INITIAL_SPAWN_INTERVAL);
 const currentDifficulty = ref(0); // Huidige moeilijkheidsniveau
+const lastFrameTime = ref(0); // Laatste frame tijd voor delta time berekening
 
 // Computed
 const remainingWords = computed(() => TOTAL_WORDS - wordsSeen.value);
@@ -204,7 +207,7 @@ const getWordForDifficulty = () => {
 // Timers
 let spawnTimer = null;
 let difficultyTimer = null;
-let animationFrame = null;
+let animationTimer = null;
 
 // ID counters
 let cometIdCounter = 0;
@@ -262,11 +265,24 @@ const createComet = () => {
 const moveComets = () => {
     if (gameEnded.value) return;
 
+    const currentTime = performance.now();
+    let deltaTime = lastFrameTime.value > 0 ? currentTime - lastFrameTime.value : FRAME_INTERVAL;
+    lastFrameTime.value = currentTime;
+
+    // Clamp delta time om spikes te voorkomen (bijvoorbeeld bij tab switching)
+    deltaTime = Math.max(MIN_DELTA_TIME, Math.min(deltaTime, MAX_DELTA_TIME));
+    
+    // Converteer naar seconden voor tijd-gebaseerde beweging
+    const deltaSeconds = deltaTime / 1000;
+    
+    // Converteer snelheid naar pixels per seconde (basis snelheid was voor 30fps, dus * 30)
+    const baseSpeedPPS = speed.value * 30;
+
     comets.value.forEach(comet => {
         // Snelle kometen hebben een vaste snelheid, normale kometen worden sneller met moeilijkheid
-        const cometSpeed = comet.isFast ? FAST_COMET_FIXED_SPEED : speed.value;
-        comet.top += cometSpeed;
-        comet.rotation += 0.15; // Langzamere rotatie tijdens vallen
+        const cometSpeedPPS = comet.isFast ? FAST_COMET_SPEED_PPS : baseSpeedPPS;
+        comet.top += cometSpeedPPS * deltaSeconds; // Tijd-gebaseerde beweging
+        comet.rotation += 0.15 * deltaSeconds * 30; // Rotatie ook tijd-gebaseerd (0.15 per frame bij 30fps = 4.5 per seconde)
     });
 
     // Remove comets that are off screen and count missed ones
@@ -282,10 +298,10 @@ const moveComets = () => {
         comet => comet.top < window.innerHeight + 150
     );
 
-    // Clean up old explosions
+    // Clean up old explosions - tijd-gebaseerd (750ms duur)
     explosions.value = explosions.value.filter(explosion => {
-        explosion.age = (explosion.age || 0) + 1;
-        return explosion.age < 25;
+        explosion.age = (explosion.age || 0) + deltaTime;
+        return explosion.age < 750; // 750ms duur
     });
 
     // Check if game should end (all words spawned and no comets left)
@@ -294,9 +310,7 @@ const moveComets = () => {
         return;
     }
 
-    if (!gameEnded.value) {
-        animationFrame = requestAnimationFrame(moveComets);
-    }
+    animationTimer = setTimeout(moveComets, FRAME_INTERVAL);
 };
 
 const createExplosion = (x, y) => {
@@ -308,7 +322,10 @@ const createExplosion = (x, y) => {
     });
 };
 
-const destroyComet = (index) => {
+const destroyComet = (cometId) => {
+    const index = comets.value.findIndex(c => c.id === cometId);
+    if (index === -1) return;
+    
     const comet = comets.value[index];
     createExplosion(comet.left, comet.top);
     comets.value.splice(index, 1);
@@ -319,35 +336,14 @@ const checkInputMatch = () => {
     if (gameEnded.value || !inputValue.value.trim()) return;
 
     const input = inputValue.value.trim().toLowerCase();
-    
-    // Check of het getypte woord overeenkomt met een komeet woord
     const matchingComet = comets.value.find(
         comet => comet.word.toLowerCase() === input
     );
 
     if (matchingComet) {
-        const index = comets.value.findIndex(c => c.id === matchingComet.id);
-        if (index !== -1) {
-            destroyComet(index);
-            inputValue.value = '';
-        }
+        destroyComet(matchingComet.id);
+        inputValue.value = '';
     }
-};
-
-const handleInput = () => {
-    // Enter key handler - kan nog steeds gebruikt worden
-    if (gameEnded.value || !inputValue.value.trim()) return;
-
-    const input = inputValue.value.trim().toLowerCase();
-    const index = comets.value.findIndex(
-        comet => comet.word.toLowerCase() === input
-    );
-
-    if (index !== -1) {
-        destroyComet(index);
-    }
-
-    inputValue.value = '';
 };
 
 const increaseDifficulty = () => {
@@ -367,13 +363,25 @@ const increaseDifficulty = () => {
     }
 };
 
+const cleanupTimers = () => {
+    if (spawnTimer) {
+        clearInterval(spawnTimer);
+        spawnTimer = null;
+    }
+    if (difficultyTimer) {
+        clearInterval(difficultyTimer);
+        difficultyTimer = null;
+    }
+    if (animationTimer) {
+        clearTimeout(animationTimer);
+        animationTimer = null;
+    }
+};
+
 const endGame = () => {
     gameEnded.value = true;
     comets.value = [];
-
-    if (spawnTimer) clearInterval(spawnTimer);
-    if (difficultyTimer) clearInterval(difficultyTimer);
-    if (animationFrame) cancelAnimationFrame(animationFrame);
+    cleanupTimers();
 };
 
 const startGame = () => {
@@ -391,11 +399,10 @@ const startGame = () => {
     cometIdCounter = 0;
     explosionIdCounter = 0;
     lastCometWasFast = false; // Reset snelle komeet tracking
+    lastFrameTime.value = performance.now(); // Reset frame time voor delta time
 
     // Clear any existing timers
-    if (spawnTimer) clearInterval(spawnTimer);
-    if (difficultyTimer) clearInterval(difficultyTimer);
-    if (animationFrame) cancelAnimationFrame(animationFrame);
+    cleanupTimers();
 
     // Start timers
     spawnTimer = setInterval(createComet, spawnInterval.value);
@@ -410,21 +417,8 @@ const handleStartGame = () => {
     startGame();
 };
 
-const restartGame = () => {
-    gameStarted.value = false;
-    endGame();
-};
-
-const cleanup = () => {
-    if (spawnTimer) clearInterval(spawnTimer);
-    if (difficultyTimer) clearInterval(difficultyTimer);
-    if (animationFrame) cancelAnimationFrame(animationFrame);
-};
-
-// Game starts when user clicks START button
-
 onUnmounted(() => {
-    cleanup();
+    cleanupTimers();
 });
 </script>
 
