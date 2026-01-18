@@ -3,8 +3,8 @@
         <!-- Start Screen -->
         <div v-if="!gameStarted" class="start-screen">
             <div class="start-content">
-                <h1 class="start-title">Raadsel Challenge</h1>
-                <p class="start-description">Los het raadsel op door het juiste antwoord te kiezen!</p>
+                <h1 class="start-title">Riddle me this!</h1>
+                <p class="start-description">Los de raadsels op door het juiste antwoord te kiezen!</p>
                 <button class="btn-start" @click="startGame">
                     START
                 </button>
@@ -19,7 +19,7 @@
                     <span class="stat-value">{{ currentRound }}/{{ totalRounds }}</span>
                 </div>
                 <div class="game-title">
-                    <span class="game-title-text">Raadsel Challenge</span>
+                    <span class="game-title-text">Riddle me this!</span>
                 </div>
                 <div class="stat">
                     <span class="stat-label">Score</span>
@@ -98,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref } from 'vue';
 
 const gameStarted = ref(false);
 const gameEnded = ref(false);
@@ -162,10 +162,10 @@ const riddles = [
     {
         question: 'Ik ben vloeibaar, maar geen natuurproduct.\nMijn prik verdwijnt als ik te lang wacht.\nSuiker maakt mij populair,\nmaar water blijft gezonder dan ik.\nWat ben ik?',
         answers: [
-            { text: 'Mineraalwater', correct: false },
-            { text: 'Vruchtensap', correct: false },
             { text: 'Frisdrank', correct: true },
-            { text: 'Thee', correct: false }
+            { text: 'Bruiswater', correct: false },
+            { text: 'Energiedrank', correct: false },
+            { text: 'Tomatensap', correct: false }
         ],
         firstRoundAnswers: [
             { text: 'Frisdrank', correct: true },
@@ -196,16 +196,16 @@ const answers = ref([]);
 
 const startGame = () => {
     gameStarted.value = true;
+    gameEnded.value = false;
+    currentRound.value = 1;
+    score.value = 0;
     resetRound();
 };
 
 const getCurrentRiddle = () => {
     // Gebruik elk raadsel voor één ronde: 1, 2, 3, 4, 5
-    if (currentRound.value === 1) return riddles[0];
-    if (currentRound.value === 2) return riddles[1];
-    if (currentRound.value === 3) return riddles[2];
-    if (currentRound.value === 4) return riddles[3];
-    return riddles[4]; // Ronde 5 = raadsel 5
+    const index = currentRound.value - 1;
+    return riddles[index] || riddles[0];
 };
 
 const resetRound = () => {
@@ -239,17 +239,16 @@ const selectAnswer = (index) => {
     
     const currentRiddleData = getCurrentRiddle();
     const correctAnswer = currentRiddleData.answers.find(a => a.correct);
-    correctAnswerText.value = correctAnswer.text;
+    correctAnswerText.value = correctAnswer?.text || '';
+    selectedAnswerCorrect.value = answer.correct;
     
     if (answer.correct) {
         score.value++;
         resultMessage.value = 'Correct! 🎉';
         resultClass.value = 'correct';
-        selectedAnswerCorrect.value = true;
     } else {
         resultMessage.value = 'Helaas, dat is niet correct.';
         resultClass.value = 'incorrect';
-        selectedAnswerCorrect.value = false;
     }
 };
 
@@ -295,7 +294,6 @@ const getIcon = (index) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #07103E 0%, #147ED8 100%);
 }
 
 .start-content {

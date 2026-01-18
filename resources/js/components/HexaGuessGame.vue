@@ -173,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 
 const gameStarted = ref(false);
 const gameEnded = ref(false);
@@ -188,6 +188,21 @@ const loadingColor = ref(false);
 const lastChoiceWasCorrect = ref(false);
 const tipOpen = ref(false);
 const csrfToken = ref(document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+// Timers
+let loadingTimer = null;
+let resultTimer = null;
+
+const cleanupTimers = () => {
+    if (loadingTimer) {
+        clearTimeout(loadingTimer);
+        loadingTimer = null;
+    }
+    if (resultTimer) {
+        clearTimeout(resultTimer);
+        resultTimer = null;
+    }
+};
 
 // Genereer een willekeurige hex kleur
 const generateColor = () => {
@@ -305,8 +320,9 @@ const nextRound = () => {
     loadingColor.value = true;
     showingResult.value = false;
     
+    cleanupTimers();
     // Simuleer een korte laadtijd voor consistentie
-    setTimeout(() => {
+    loadingTimer = setTimeout(() => {
         currentColor.value = generateColor();
         loadingColor.value = false;
     }, 500);
@@ -342,13 +358,15 @@ const makeChoice = (userChoice) => {
     
     showingResult.value = true;
     
+    cleanupTimers();
     // Wacht 2.5 seconden voordat we naar de volgende ronde gaan (langer voor fout antwoord met extra info)
-    setTimeout(() => {
+    resultTimer = setTimeout(() => {
         nextRound();
     }, 2500);
 };
 
 const endGame = () => {
+    cleanupTimers();
     gameEnded.value = true;
     gameStarted.value = false;
 };
@@ -358,6 +376,7 @@ const toggleTip = () => {
 };
 
 const restartGame = () => {
+    cleanupTimers();
     gameStarted.value = false;
     gameEnded.value = false;
     currentRound.value = 0;
@@ -367,6 +386,10 @@ const restartGame = () => {
     loadingColor.value = false;
     tipOpen.value = false;
 };
+
+onUnmounted(() => {
+    cleanupTimers();
+});
 </script>
 
 <style scoped>
