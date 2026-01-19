@@ -12,15 +12,20 @@ class CalculateRiddleScore extends Controller
     public function calculateScore(Request $request)
     {
         $score = (int) $request->input('score');
-        Riddle::create([
+        $score = min($score, 5);
+        $total_score = (int)($score * 2);
+        if(Riddle::where('student_id', session('student_id'))->exists()){
+            return view("game.highscore"); 
+        }
+        else{
+            Riddle::create([
             'student_id' => session('student_id'),
             'time' => 0,
             'score' => $score,
-            'total_score' => $score,
+            'total_score' => $total_score,
         ]);
-                
-        Student::where('id', session('student_id'))->increment('total_score', $score);
-        return view("game.highscore");   
+            return view("game.highscore"); 
+        }  
 
     }
 }
