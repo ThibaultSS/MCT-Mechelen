@@ -13,6 +13,7 @@ class CalculateAiScore extends Controller
     {
         $score = (int) $request->input('score');
         $score = min($score, 10);
+        $total_score = (int)($score*2);
         if(Aiornot::where('student_id', session('student_id'))->exists()){
             return view("game.hexa-guess"); 
         }
@@ -21,7 +22,7 @@ class CalculateAiScore extends Controller
                 'student_id' => session('student_id'),
                 'time' => 0,
                 'score' => $score,
-                'total_score' => $score(max),
+                'total_score' => $total_score,
             ]);        
             return view("game.hexa-guess");     
         }
