@@ -13,7 +13,7 @@ class CalculateRiddleScore extends Controller
     {
         $score = (int) $request->input('score');
         $score = min($score, 5);
-        $total_score = (int)($score * 2);
+        $total_score = (int)($score * 4);
         if(Riddle::where('student_id', session('student_id'))->exists()){
             return view("game.highscore"); 
         }

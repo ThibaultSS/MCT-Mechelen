@@ -13,7 +13,7 @@ class CalculateCometScore extends Controller
     {
         $score = (int) $request->input('score');
         $score = min($score, 50);
-        $total_score = (int)($score / 5);
+        $total_score = (int)($score / 2.5);
         if(Typeracer::where('student_id', session('student_id'))->exists()){
             return view("game.ai-or-not"); 
         }

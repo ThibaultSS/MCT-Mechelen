@@ -13,7 +13,7 @@ class CalculateCodeScore extends Controller
     {
         $score = (int) $request->input('score');
         $score = min($score, 100);
-        $total_score = (int)($score/10);
+        $total_score = (int)($score/5);
         if(Codequest::where('student_id', session('student_id'))->exists()){
             return view("game.riddle");
         }
