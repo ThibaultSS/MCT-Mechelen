@@ -155,13 +155,13 @@ import { ref, computed, onUnmounted } from 'vue';
 
 // Constants
 const TOTAL_WORDS = 50;
-const DIFFICULTY_INCREASE_INTERVAL = 10; // Elke 10 woorden
-const INITIAL_SPAWN_INTERVAL = 2200; // milliseconds
-const MIN_SPAWN_INTERVAL = 700; // milliseconds
+const DIFFICULTY_INCREASE_INTERVAL = 8; // Elke 8 woorden (was 10) - moeilijkheid stijgt sneller
+const INITIAL_SPAWN_INTERVAL = 1800; // milliseconds (was 2200) - start sneller met spawnen
+const MIN_SPAWN_INTERVAL = 600; // milliseconds (was 700) - kan nog sneller worden
 const MIN_SPAWN_MARGIN = 150; // Minimale afstand van de rand
-const FAST_COMET_CHANCE = 0.18; // 18% kans op een snelle komeet
-const FAST_COMET_SPEED_PPS = 135; // Snelle kometen: 135 pixels per seconde
-const MULTIPLE_COMET_CHANCE = 0.45; // 45% kans op meerdere kometen tegelijk
+const FAST_COMET_CHANCE = 0.25; // 25% kans op een snelle komeet (was 18%)
+const FAST_COMET_SPEED_PPS = 150; // Snelle kometen: 150 pixels per seconde (was 135)
+const MULTIPLE_COMET_CHANCE = 0.55; // 55% kans op meerdere kometen tegelijk (was 45%)
 const TARGET_FPS = 60;
 const FRAME_INTERVAL = 1000 / TARGET_FPS; // ~16.67ms voor 60 fps
 const MAX_DELTA_TIME = 100; // Max delta time in ms om spikes te voorkomen
@@ -363,11 +363,11 @@ const increaseDifficulty = () => {
     
     if (newDifficulty > currentDifficulty.value) {
         currentDifficulty.value = newDifficulty;
-        speed.value += 0.5; // Snelheidsverhoging per niveau
+        speed.value += 0.7; // Snelheidsverhoging per niveau (was 0.5) - stijgt sneller
 
         if (spawnInterval.value > MIN_SPAWN_INTERVAL) {
             clearInterval(spawnTimer);
-            spawnInterval.value -= 120; // Spawn verhoging
+            spawnInterval.value -= 150; // Spawn verhoging (was 120) - daalt sneller
             spawnTimer = setInterval(createComet, spawnInterval.value);
         }
     }
@@ -407,7 +407,7 @@ const startGame = () => {
     wordsSeen.value = 0;
     score.value = 0;
     missed.value = 0;
-    speed.value = 1.8; // Start snelheid
+    speed.value = 2.2; // Start snelheid (was 1.8) - start sneller
     spawnInterval.value = INITIAL_SPAWN_INTERVAL;
     currentDifficulty.value = 0;
     cometIdCounter = 0;
