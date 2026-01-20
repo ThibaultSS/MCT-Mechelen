@@ -375,18 +375,6 @@ const toggleTip = () => {
     tipOpen.value = !tipOpen.value;
 };
 
-const restartGame = () => {
-    cleanupTimers();
-    gameStarted.value = false;
-    gameEnded.value = false;
-    currentRound.value = 0;
-    score.value = 0;
-    showingResult.value = false;
-    currentColor.value = { hex: '', dominantColor: '' };
-    loadingColor.value = false;
-    tipOpen.value = false;
-};
-
 onUnmounted(() => {
     cleanupTimers();
 });

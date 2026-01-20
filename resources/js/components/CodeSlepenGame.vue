@@ -529,7 +529,9 @@ const onDropCategory = (categoryName) => {
         category.items.push({
             code: item.code,
             category: item.correctCategory || item.category,
-            correct: isCorrect
+            correctCategory: item.correctCategory, // Behoud originele correctCategory
+            correct: isCorrect,
+            originalCorrect: item.correct !== undefined ? item.correct : undefined // Behoud originele correct voor true/false rondes
         });
         item.used = true;
     }
@@ -540,23 +542,27 @@ const onDropCategory = (categoryName) => {
 };
 
 const removeFromCategory = (categoryName, itemIndex) => {
+    if (showingResult.value) return; // Voorkom verwijderen tijdens resultaat
+    
     const category = categories.value.find(cat => cat.name === categoryName);
     if (!category || !category.items[itemIndex]) return;
     
     const item = category.items[itemIndex];
     
-    // Vind het originele item in de database en voeg terug toe
-    const originalItem = shuffledItems.value.find(i => i.code === item.code && i.used);
-    if (originalItem) {
-        originalItem.used = false;
-    } else {
-        // Als niet gevonden, maak nieuw item aan
-        shuffledItems.value.push({
-            code: item.code,
-            category: item.category,
-            used: false
-        });
-    }
+    // Voeg het item terug toe aan shuffledItems
+    // Items worden verwijderd uit shuffledItems wanneer ze worden toegevoegd aan categorieën,
+    // dus we maken gewoon een nieuw item aan met de originele data
+    // Herstel de originele category (als correctCategory bestaat, gebruik die, anders de category)
+    const originalCategory = item.correctCategory || item.category;
+    
+    shuffledItems.value.push({
+        code: item.code,
+        category: originalCategory,
+        correctCategory: item.correctCategory,
+        // Voor true/false rondes: herstel de originele correct property
+        correct: item.originalCorrect !== undefined ? item.originalCorrect : undefined,
+        used: false
+    });
     
     // Verwijder uit categorie
     category.items.splice(itemIndex, 1);
